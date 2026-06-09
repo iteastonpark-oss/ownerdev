@@ -86,4 +86,5 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 
 
 
-defined('URLADMIN') OR define('URLADMIN', 'https://bms.eprjatinangor.com/');
+defined('URLADMIN')       OR define('URLADMIN',       'https://bms.eprjatinangor.com/');
+defined('BMS_UPLOAD_PATH') OR define('BMS_UPLOAD_PATH', '/var/www/bms.eprjatinangor.com/upload/');
