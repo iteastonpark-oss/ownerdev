@@ -51,12 +51,19 @@ $controller = $this->uri->segment(1);
 			</a>
 		</li>
 		<li class="nav-item">
+			<a class="nav-link pb-1 <?= ($controller == 'pbb') ? 'text-light' : ''; ?>"
+			   href="<?= site_url('pbb'); ?>"
+			   aria-controls="navbar-dashboards">
+				<i class="fa fa-file-text-o"></i>
+				<br><small>PBB</small>
+			</a>
+		</li>
+		<li class="nav-item">
 			<a class="nav-link pb-1 <?= ($controller == 'blog') ? 'text-light' : ''; ?>"
 			   href="<?= site_url('blog/menu'); ?>"
 			   aria-controls="navbar-dashboards">
 				<i class="fa fa-book"></i>
 				<br><small>P3SRS</small>
-
 			</a>
 		</li>
 	</ul>
