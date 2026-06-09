@@ -59,7 +59,15 @@
 							<span class="nav-link-text ml-2"> Utility</span>
 						</a>
 					</li>
-					</li><li class="nav-item">
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-gray-dark pb-1" href="<?= site_url('pbb'); ?>"
+						   aria-controls="navbar-dashboards">
+							<i class="fa fa-file-text-o text-primary"></i>
+							<span class="nav-link-text ml-2"> PBB</span>
+						</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('blog/menu');?>"
 						   aria-controls="navbar-dashboards">
 							<i class="fa fa-bars text-primary"></i>
