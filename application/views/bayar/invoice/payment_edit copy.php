@@ -1,0 +1,275 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: iy2
+ * Date: 9/22/2016
+ * Time: 9:30 AM
+ */
+?>
+
+<script src="<?php echo base_url('assets/getNumber.js') ?>"></script>
+<h3>Payment Details</h3>
+<input type="hidden" name="id_bayar" value="<?php echo ($submit == 'edit') ? $bayar->id_bayar : ''; ?>">
+<input type="hidden" name="id_bast" value="<?= $bast->id_bast; ?>">
+
+<table class="table table-sm table-borderless">
+	<tr>
+		<td>Unit</td>
+		<td><?php echo $unit->kode; ?></td>
+	</tr>
+	<?php
+	if ($submit == 'tambah') {
+		?>
+		<tr>
+			<td>AR</td>
+			<td><?php echo $this->apl->number_format($d->piutang, 1); ?></td>
+		</tr>
+	<?php } ?>
+</table>
+
+<div class="row">
+	<div class="col-md-6">
+		<label for="" class="control-label">Pay Date</label>
+		<input type="date" name="tanggal" class="form-control form-control-sm"
+			   value="<?php echo date('Y-m-d'); ?>">
+	</div>
+	<div class="col-md-6">
+		<label for="" class="control-label">Payment With</label>
+		<?php
+		echo $this->dropdown_model->getDropdownViaBayar('id_via', ($submit == 'edit') ? $bayar->id_via : '',
+				'class="form-control form-control-sm" required');
+		?>
+	</div>
+</div>
+<br>
+
+<h5 for="" class="text-muted">Detail</h5>
+<div class="row">
+	<div class="col-md-4">
+		<?php
+		echo $this->dropdown_model->getDropdownTagihanInvoiceDanDeposit(
+			'',
+			'',
+			'class="form-control form-control-sm"
+							id="input_tagihan"'
+		)
+		?>
+
+	</div>
+	<div class="col-md-3">
+		<input type="text" id="input_jumlah" class="form-control form-control-sm getNumber" value="0" required>
+	</div>
+	<div class="col-md-3">
+		<div class="input-group">
+			<?php
+			echo $this->dropdown_model->getDropdownBulan(
+				"bulan_dari",
+				date('m'),
+				'class="form-control form-control-sm" id="input_bulan"'
+			)
+			?>
+
+			<?php
+			echo $this->dropdown_model->getDropdownTahun(
+				"tahun_dari",
+				date('Y'),
+				'class="form-control form-control-sm" id="input_tahun"'
+			)
+			?>
+		</div>
+	</div>
+	<div class="col-md-2">
+		<button type="button" name="add" id="add" class="btn btn-success btn-sm btn-block">
+			<i class="fa fa-plus"></i> Add
+		</button>
+	</div>
+</div>
+
+<br>
+<table class="table table-borderless table-sm">
+	<thead class="table-active">
+		<tr>
+			<td>Invoice</td>
+			<td>Name</td>
+			<td>Total</td>
+			<td>Month</td>
+			<td>Year</td>
+			<td>
+				<a class="btn btn-sm btn-danger hapus_semua"><i class="fa fa-remove"></i> All</a>
+			</td>
+		</tr>
+	</thead>
+	<tbody id="dynamic_field">
+		<?php
+		$i = 0;
+		foreach ($detail as $b) {
+			if ($b->jumlah > 0) {
+		?>
+				<tr id="row2<?php echo $b->id_detail; ?>" class="dynamic-added">
+					<th>
+						<?= $this->apl->get_nilai_pilih(
+							"billing",
+							"invoice",
+							array('id_billing' => $b->id_billing)
+						); ?>
+						<input type="hidden" name="id_billing[]" class="form-control form-control-sm" value="<?php echo $b->id_billing; ?>" required>
+						</td>
+					<th class="py-0">
+						<?php
+						echo ($b->id_tag != null && $b->id_tag != 0) ? $this->apl->get_nilai_pilih(
+							"db_tag",
+							"nama",
+							array('id_tag' => $b->id_tag)
+						) : 'UnAlokasi'; ?>
+						<input type="hidden" name="id_tag[]" class="form-control form-control-sm" value="<?php echo $b->id_tag; ?>" required>
+
+						</td>
+					<td class="pull-right py-0">
+
+						<?php //$this->apl->number_format($b->jumlah, 1);
+						?>
+						<input type="text" name="jumlah[]" class="form-control form-control-sm getNumber" data-tagihan="<?= $b->jumlah; ?>" value="<?php echo $b->jumlah; ?>" required>
+					</td>
+					<td class="py-0">
+						<?= $b->bulan; ?>
+						<input type="hidden" name="bulan[]" class="form-control form-control-sm" value="<?php echo $b->bulan; ?>" required>
+					</td>
+					<td class="py-0">
+						<?= $b->tahun; ?>
+						<input type="hidden" name="tahun[]" class="form-control form-control-sm" value="<?php echo $b->tahun; ?>" required>
+					</td>
+
+					<td class="py-0">
+						<button type="button" name="remove" data-id="<?php echo $b->id_detail; ?>" class="btn btn-danger btn-sm btn_remove">X
+						</button>
+					</td>
+				</tr>
+		<?php
+			}
+		}
+		?>
+	</tbody>
+</table>
+
+<div class="row">
+	<div class="col-md-6">
+		<label for="" class="control-label">Note</label>
+		<input type="text" name="ket" class="form-control form-control-sm"
+			   value="<?php echo ($submit == 'edit') ? $bayar->ket : ''; ?>">
+	</div>
+	<div class="col-md-6">
+		<label for="" class="control-label">Total Amount Paid</label>
+		<input type="text" name="bayar" class="form-control form-control-sm getNumber" id="total_bayar_baru"
+			   value="0" required readonly>
+	</div>
+</div>
+
+<script>
+
+	var jumlah = 0;
+	var tagihan = 0;
+	//var total = 0;
+	$(document).ready(function () {
+		total();
+		
+	});
+
+	$("input[name^=jumlah]").on('keydown paste input', function() {
+		total();
+	});
+
+
+	/**
+	$("input[name^=jumlah]").on('change', function() {
+		if(parseFloat($(this).data("tagihan")) < $(this).val()){
+			alert("data pembayaran lebih besar dari tagihan");	
+			$(this).val($(this).data("tagihan"));
+		}
+	});
+	 */
+
+	$("input[name^=jumlah]").on('change', function() {
+		total();
+	});
+	
+
+	function total() {
+		jumlah = 0;
+		
+		
+		$('input[name^="jumlah"]').each(function () {
+			jumlah += parseFloat($(this).val());
+		});
+		
+		//alert(jumlah);
+		//$("#total").html(jumlah.toLocaleString("en-US"));
+		//$("#total_bayar2").html(jumlah.toLocaleString("en-US"));
+		document.getElementById("total_bayar_baru").value = jumlah.toLocaleString("en-US");
+		//$('#total_bayar').val(jumlah.toLocaleString("en-US"));
+		//$('#total_bayar').attr('value', jumlah.toLocaleString("en-US"));
+	}
+
+	var i = 1;
+	$("#add").click(function () {
+		var id_tag = $('#input_tagihan').val();
+		var jumlah = $('#input_jumlah').val();
+		var bulan = $('#input_bulan').val();
+		var tahun = $('#input_tahun').val();
+
+		if (id_tag == '') {
+			alert("Harap masukan Jenis Tagihan");
+			return (false);
+		}
+		if (jumlah == 0) {
+			alert("Harap masukan harga");
+			return (false);
+		}
+		if (bulan == '') {
+			alert("Harap masukan Bulan");
+			return (false);
+		}
+		if (tahun == '') {
+			alert("Harap masukan Tahun");
+			return (false);
+		}
+
+		i++;
+		$.ajax({
+			type: "POST",
+			url: "<?php echo site_url('bayar/invoice/alokasi_bayar_detail') ?>",
+			cache: false,
+			data: {id_tag: id_tag, jumlah: jumlah, bulan: bulan, tahun: tahun},
+
+			success: function (respond) {
+
+				$('#dynamic_field').append('' +
+					'<tr id="row' + i + '" class="dynamic-added">' + respond +
+					'<td><button type="button" name="remove" id="' + i + '" class="btn btn-danger btn-sm btn_remove">X</button></td>' +
+					'</tr>');
+
+				total();
+			}
+		});
+
+
+	});
+
+
+	$(document).on('click', '.btn_remove', function () {
+		var button_id = $(this).attr("id");
+		$('#row' + button_id + '').remove();
+		var button_id2 = $(this).data("id");
+		$('#row2' + button_id2 + '').remove();
+		total();
+	});
+
+
+	function validate(form) {
+		if (jumlah == 0) {
+			alert("Harap masukan Atribut");
+			return (false);
+		}
+		return (true);
+	}
+
+</script>

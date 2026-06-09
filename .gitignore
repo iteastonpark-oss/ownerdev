@@ -1,0 +1,60 @@
+# =========================
+# CONFIG SENSITIVE
+# =========================
+application/config/database.php
+application/config/config.php
+
+# Jika ada file environment
+.env
+
+# =========================
+# CACHE / LOG
+# =========================
+application/cache/*
+!application/cache/index.html
+
+application/logs/*
+!application/logs/index.html
+
+# =========================
+# UPLOAD / FILE USER
+# =========================
+uploads/*
+assets/uploads/*
+media/*
+public/uploads/*
+
+# =========================
+# VENDOR / DEPENDENCY
+# =========================
+vendor/
+node_modules/
+
+# =========================
+# COMPOSER
+# =========================
+composer.lock
+
+# =========================
+# OS / EDITOR
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# BACKUP / DATABASE
+# =========================
+*.sql
+*.zip
+*.rar
+*.bak
+*.backup
+*.old
+
+# =========================
+# TEMP
+# =========================
+tmp/
+temp/
