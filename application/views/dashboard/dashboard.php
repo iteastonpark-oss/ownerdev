@@ -11,52 +11,53 @@
 $controller = strtolower($this->uri->segment(1));
 ?>
 
-<div class="card bg-green">
-	<div class="card-body">
-		<div class="header-body mt--4">
-			<div class="row align-items-center">
-				<div class="col-lg-6">
-					<div class="pr-5">
-						<h1 class="display-2 text-white font-weight-bold mb-0">Selamat Datang di halaman Portal Owner
-							Unit <?= $u->kode; ?></h1>
-						<p class="text-white mt-4">Ini adalah halaman informasi untuk owner</p>
+<div class="mb-lg">
+    <!-- Welcome Card -->
+    <div class="bg-primary rounded-xl p-xl text-on-primary mb-lg">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-md">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg font-bold mb-sm">Selamat Datang di halaman Portal Owner</h1>
+                <p class="font-body-lg text-body-lg text-on-primary/80">Unit <?= $u->kode; ?></p>
+                <p class="font-body-md text-body-md text-on-primary/70 mt-sm">Ini adalah halaman informasi untuk owner</p>
+            </div>
+            <div class="w-32 h-32 rounded-2xl bg-primary-container/30 flex items-center justify-center">
+                <span class="material-symbols-outlined" style="font-size: 80px; font-variation-settings: 'FILL' 1;">apartment</span>
+            </div>
+        </div>
+    </div>
 
-					</div>
-				</div>
-				<div class="col-lg-6">
-					<div class="row pt-5">
-						<div class="col-6">
-							<a href="<?= site_url('bayar/invoice/bayar?id_unit=' . $this->session->id_unit); ?>">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+        <a href="<?= site_url('bayar/invoice/bayar?id_unit=' . $this->session->id_unit); ?>" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">Outstanding</p>
+                    <p class="font-display-lg text-display-lg font-bold text-on-surface">Rp. <?= $this->apl->number_format($tagihan, 1); ?></p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-error-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-error" style="font-size: 32px;">payments</span>
+                </div>
+            </div>
+            <div class="mt-md flex items-center gap-xs text-primary">
+                <span class="font-label-md text-label-md">Lihat Invoice</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
 
-								<div class="card">
-									<div class="card-body">
-										<div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow mb-4">
-											<i class="ni ni-money-coins"></i>
-										</div>
-										<h5 class="h3">Outstanding</h5>
-										<p>Rp. <?= $this->apl->number_format($tagihan, 1); ?></p>
-									</div>
-								</div>
-
-							</a>
-						</div>
-						<div class="col-6 pt-lg-5 pt-4">
-							<a href="<?= site_url('meter/utility/view/air'); ?>">
-
-								<div class="card mb-4">
-									<div class="card-body">
-										<div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow mb-4">
-											<i class="ni ni-active-40"></i>
-										</div>
-										<h5 class="h3">Water Consumption</h5>
-										<p><?= $air; ?> M3</p>
-									</div>
-								</div>
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+        <a href="<?= site_url('meter/utility/view/air'); ?>" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">Water Consumption</p>
+                    <p class="font-display-lg text-display-lg font-bold text-on-surface"><?= $air; ?> M3</p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-tertiary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-tertiary" style="font-size: 32px;">water_drop</span>
+                </div>
+            </div>
+            <div class="mt-md flex items-center gap-xs text-primary">
+                <span class="font-label-md text-label-md">Lihat Detail</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
+    </div>
 </div>

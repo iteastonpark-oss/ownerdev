@@ -72,6 +72,36 @@ class Auth extends CI_Controller
 
 	}
 
+	/**
+	 * Bypass login untuk local development — HANYA aktif di environment 'development'.
+	 * URL: auth/dev_login/{id_bast}
+	 */
+	function dev_login($id_bast = '')
+	{
+		if (ENVIRONMENT !== 'development') show_404();
+
+		$id_bast = (int) $id_bast;
+		if (!$id_bast) show_404();
+
+		$bast = $this->apl->getSelectedData('bast', array('id_bast' => $id_bast, 'hapus' => 0))->row();
+		if (!$bast) show_404();
+
+		$unit    = $this->apl->getSelectedData('db_unit', array('id_unit' => $bast->id_unit))->row();
+		$pemilik = $this->apl->getSelectedData('pemilik', array('id_pemilik' => $bast->id_pemilik))->row();
+
+		$this->session->set_userdata(array(
+			'id_bast'    => $bast->id_bast,
+			'id_unit'    => $bast->id_unit,
+			'id_pemilik' => $bast->id_pemilik,
+			'hp'         => $pemilik->hp,
+			'username'   => $unit->kode,
+			'login'      => '1',
+			'tipe'       => 'owner',
+		));
+
+		redirect(site_url(''));
+	}
+
 	function link($otp){
 		$login=$this->apl->getSelectedData("bast_login",array(
 			'otp'=>$otp,
