@@ -214,7 +214,7 @@
                             <?= $this->dropdown_model->getDropdownUnitBast('id_bast',
                                 '',
                                 'class="w-full bg-transparent border-0 pl-xl pr-xl py-2.5 font-body-md text-on-surface appearance-none focus:outline-none focus:ring-0 cursor-pointer" required'); ?>
-                            <div class="absolute inset-y-0 right-0 pr-md flex items-center pointer-events-none text-on-surface-variant z-10">
+                            <div class="absolute inset-y-0 right-0 px-md flex items-center pointer-events-none text-on-surface-variant z-10 bg-surface-container-low">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">expand_more</span>
                             </div>
                         </div>
