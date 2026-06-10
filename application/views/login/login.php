@@ -199,9 +199,9 @@
                             <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-on-surface-variant">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
                             </div>
-                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789 (Dev: dev/1234/0000)" type="tel" required />
+                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789" type="tel" required />
                         </div>
-                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">Development: masukkan "dev", "1234", atau "0000" untuk bypass OTP</p>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">Masukkan nomor WhatsApp yang terdaftar</p>
                     </div>
 
                     <!-- Unit Selection -->
