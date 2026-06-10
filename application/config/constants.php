@@ -87,4 +87,11 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 
 
 defined('URLADMIN')       OR define('URLADMIN',       'https://bms.eprjatinangor.com/');
-defined('BMS_UPLOAD_PATH') OR define('BMS_UPLOAD_PATH', '/var/www/bms.eprjatinangor.com/upload/');
+
+$_bms_upload_env = getenv('BMS_UPLOAD_PATH');
+defined('BMS_UPLOAD_PATH') OR define('BMS_UPLOAD_PATH',
+    ($_bms_upload_env !== false && $_bms_upload_env !== '')
+        ? rtrim($_bms_upload_env, '/') . '/'
+        : '/var/www/bms.eprjatinangor.com/upload/'
+);
+unset($_bms_upload_env);

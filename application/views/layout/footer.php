@@ -6,44 +6,42 @@
  * Time: 7:02 PM
  */
 ?>
-
-<footer class="footer bg-transparent">
-	<ul class="list-group text-right w-100">
-		<li class="list-group-item list-group-item-primary">Hotline</li>
-		<li class="list-group-item list-group-item-success"><a href="https://wa.me/6282312122021" target="_blank">082312122021
-				<i class="fa fa-whatsapp"></i></a></li>
-		<li class="list-group-item list-group-item-success">0227780188 <i class="fa fa-phone"></i></li>
-		<li class="list-group-item list-group-item-success"><a href="https://eprjatinangor.com" target="_blank">https://eprjatinangor.com
-				<i class="fa fa-globe"></i></a></li>
-		<li class="list-group-item list-group-item-success"><a href="mailto:info@eprjatinangor.com" target="_blank">info@eprjatinangor.com
-				<i class="fa fa-send"></i></a></li>
-	</ul>
-	<div class="align-items-center justify-content-xl-between mb-5">
-		<div class="col-xl-6">
-			<div class="copyright text-center text-xl-left text-muted">
-				&copy; <?php echo date('Y'); ?> <a href="https://eprjatinangor.com" class="font-weight-bold ml-1"
-												   target="_blank"><?= $this->bm_model->get()->footer; ?></a>
-			</div>
+<!-- Footer -->
+<footer
+	class="bg-surface-container-lowest text-on-surface-variant w-full py-lg px-margin-desktop border-t border-outline-variant mt-auto">
+	<div class="max-w-max-width mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+		<div class="flex flex-col items-center md:items-start gap-xs">
+			<div class="font-label-md text-label-md font-bold text-primary">Easton Park Residence Jatinangor</div>
+			<div class="font-label-sm text-label-sm text-on-surface-variant">© 2024 Easton Park Residence
+				Jatinangor. All rights reserved.</div>
 		</div>
-		<div class="col-xl-6">
-			<!--
-			<ul class="nav nav-footer justify-content-center justify-content-xl-end">
-				<li class="nav-item">
-					<a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a>
-				</li>
-				<li class="nav-item">
-					<a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About
-						Us</a>
-				</li>
-				<li class="nav-item">
-					<a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a>
-				</li>
-				<li class="nav-item">
-					<a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md"
-					   class="nav-link" target="_blank">MIT License</a>
-				</li>
-			</ul>
-			-->
+		<div class="flex flex-wrap justify-center gap-lg">
+			<div class="flex flex-col items-center md:items-start">
+				<span
+					class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 mb-xs">Inquiries</span>
+				<div class="flex flex-col gap-1">
+					<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary underline-offset-4 hover:underline transition-colors flex items-center gap-xs"
+						href="tel:082312122021">
+						<span class="material-symbols-outlined text-[16px]">call</span>
+						Hotline: 082312122021
+					</a>
+					<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary underline-offset-4 hover:underline transition-colors flex items-center gap-xs"
+						href="mailto:info@eprjatinangor.com">
+						<span class="material-symbols-outlined text-[16px]">mail</span>
+						info@eprjatinangor.com
+					</a>
+				</div>
+			</div>
+			<div class="flex flex-col items-center md:items-start">
+				<span
+					class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 mb-xs">Legal</span>
+				<div class="flex gap-md">
+					<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary underline-offset-4 hover:underline transition-colors"
+						href="#">Privacy Policy</a>
+					<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary underline-offset-4 hover:underline transition-colors"
+						href="#">Terms of Service</a>
+				</div>
+			</div>
 		</div>
 	</div>
 </footer>
@@ -164,4 +162,39 @@
 		// ...
 	});
 	*/
-</script>
+
+        // Simple entry animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.animate-fade-in-up');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Form handling simulation
+        const loginForm = document.querySelector('form');
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = loginForm.querySelector('button');
+            const originalContent = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> Authenticating...`;
+
+            setTimeout(() => {
+                btn.classList.replace('bg-primary-container', 'bg-green-600');
+                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> Success`;
+                setTimeout(() => {
+                    alert('Login successful! Redirecting to dashboard...');
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-green-600');
+                }, 1000);
+            }, 1500);
+        });
+    </script>
