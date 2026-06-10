@@ -63,7 +63,7 @@ $navbar = "layout/navbar";
             }
         }
         ?>
-        <div id="panel" class="pt-lg">
+        <div id="panel" style="padding-top:64px">
             <?php
             $this->load->view($navbar);
             ?>

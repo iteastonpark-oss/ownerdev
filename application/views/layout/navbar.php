@@ -9,9 +9,9 @@
 
 <!-- Top navbar -->
 <nav class="fixed top-0 left-64 right-0 bg-primary text-on-primary border-b border-primary-container shadow-sm z-30">
-    <div class="flex justify-between items-center px-md py-sm">
+    <div class="flex justify-between items-center px-md" style="height:64px">
         <div class="flex items-center gap-sm">
-            <button onclick="window.history.back();" class="p-sm rounded-lg hover:bg-primary-container/20 transition-colors">
+            <button onclick="window.history.back();" class="rounded-lg hover:bg-primary-container/20 transition-colors p-base">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
             <div class="flex flex-col">

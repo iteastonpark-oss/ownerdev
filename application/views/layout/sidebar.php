@@ -10,7 +10,7 @@
 <nav class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant shadow-sm z-40 transition-all duration-300" id="sidenav-main">
     <div class="h-full flex flex-col">
         <!-- Brand -->
-        <div class="p-md border-b border-outline-variant">
+        <div class="px-md border-b border-outline-variant flex items-center" style="height:64px">
             <a href="<?= site_url(''); ?>" class="flex items-center gap-md">
                 <span class="material-symbols-outlined text-primary">apartment</span>
                 <div class="flex flex-col">
