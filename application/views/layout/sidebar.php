@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: 2kangs
@@ -8,74 +7,103 @@
  */
 ?>
 
-<nav class="sidenav navbar navbar-vertical fixed-left navbar-expand-xs navbar-light " id="sidenav-main">
-	<div class="scrollbar-inner">
-		<!-- Brand -->
-		<div class="sidenav-header d-flex align-items-center">
-			<a class="navbar-brand text-black-50" href="<?= site_url(''); ?>">
+<nav class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant shadow-sm z-40 transition-all duration-300" id="sidenav-main">
+    <div class="h-full flex flex-col">
+        <!-- Brand -->
+        <div class="p-md border-b border-outline-variant">
+            <a href="<?= site_url(''); ?>" class="flex items-center gap-base">
+                <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-primary">apartment</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-label-md text-label-md font-bold text-on-surface">EPR Jatinangor</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Owner Portal</span>
+                </div>
+            </a>
+        </div>
 
-				<span class="font-weight-bold">BMS</span>
-			</a>
-			<div class="ml-auto">
-				<!-- Sidenav toggler -->
-				<div class="sidenav-toggler d-none d-xl-block" data-action="sidenav-unpin"
-					 data-target="#sidenav-main">
-					<div class="sidenav-toggler-inner">
-						<i class="sidenav-toggler-line"></i>
-						<i class="sidenav-toggler-line"></i>
-						<i class="sidenav-toggler-line"></i>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="navbar-inner">
-			<!-- Collapse -->
-			<div class="collapse navbar-collapse" id="sidenav-collapse-main">
-				<ul class="navbar-nav">
-					<li class="nav-item">
-						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('');?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-home text-primary"></i>
-							<span class="nav-link-text ml-2"> Dashboard</span>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('bayar');?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-bank text-primary"></i>
-							<span class="nav-link-text ml-2"> Invoice</span>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('tiket');?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-comment text-primary"></i>
-							<span class="nav-link-text ml-2"> Request</span>
-						</a>
-					</li><li class="nav-item">
-						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('meter');?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-bars text-primary"></i>
-							<span class="nav-link-text ml-2"> Utility</span>
-						</a>
-					</li>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-gray-dark pb-1" href="<?= site_url('pbb'); ?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-file-text-o text-primary"></i>
-							<span class="nav-link-text ml-2"> PBB</span>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-gray-dark  pb-1" href="<?= site_url('blog/menu');?>"
-						   aria-controls="navbar-dashboards">
-							<i class="fa fa-bars text-primary"></i>
-							<span class="nav-link-text ml-2"> P3SRS</span>
-						</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</div>
+        <!-- Navigation -->
+        <?php
+        $seg = $this->uri->segment(1, '');
+        $active   = 'flex items-center gap-md px-md py-sm rounded-lg bg-primary-container text-on-primary transition-all';
+        $inactive = 'flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all';
+        $menus = [
+            ''        => ['icon' => 'home',          'label' => 'Dashboard'],
+            'bayar'   => ['icon' => 'receipt_long',  'label' => 'Invoice'],
+            'tiket'   => ['icon' => 'support_agent', 'label' => 'Request'],
+            'meter'   => ['icon' => 'water',         'label' => 'Utility'],
+            'pbb'     => ['icon' => 'description',   'label' => 'PBB'],
+            'blog'    => ['icon' => 'shield',        'label' => 'P3SRS'],
+        ];
+        ?>
+        <div class="flex-1 overflow-y-auto p-md">
+            <ul class="flex flex-col gap-sm">
+                <?php foreach ($menus as $key => $menu): ?>
+                <li>
+                    <a class="<?= ($seg === $key) ? $active : $inactive ?>"
+                       href="<?= site_url($key ?: '') ?>">
+                        <span class="material-symbols-outlined"><?= $menu['icon'] ?></span>
+                        <span class="font-label-md text-label-md font-medium"><?= $menu['label'] ?></span>
+                    </a>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+
+        <!-- Unit Profile -->
+        <?php
+        // Ambil dari controller jika sudah dipass, fallback ke session
+        $sidebar_unit    = isset($u) ? $u : null;
+        $sidebar_pemilik = isset($p) ? $p : null;
+        if (!$sidebar_unit && $this->session->id_unit) {
+            $sidebar_unit = $this->db->get_where('db_unit', ['id_unit' => $this->session->id_unit])->row();
+        }
+        if (!$sidebar_pemilik && $this->session->id_pemilik) {
+            $sidebar_pemilik = $this->db->get_where('pemilik', ['id_pemilik' => $this->session->id_pemilik])->row();
+        }
+        ?>
+        <?php if ($sidebar_unit): ?>
+        <div class="px-md pb-sm border-t border-outline-variant pt-md">
+            <div class="rounded-lg bg-primary-container p-sm flex flex-col gap-xs">
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-on-primary-container text-base">apartment</span>
+                    <span class="font-label-md text-label-md font-bold text-on-primary-container"><?= htmlspecialchars($sidebar_unit->kode) ?></span>
+                    <span class="ml-auto font-label-sm text-label-sm text-on-primary-container opacity-70"><?= htmlspecialchars($sidebar_unit->luas) ?> m²</span>
+                </div>
+                <div class="flex flex-col gap-xs pl-sm">
+                    <p class="font-label-sm text-label-sm text-on-primary-container">
+                        <span class="opacity-70">Tower</span>&nbsp;
+                        <span class="font-medium"><?= htmlspecialchars($sidebar_unit->tower) ?></span>
+                    </p>
+                    <p class="font-label-sm text-label-sm text-on-primary-container">
+                        <span class="opacity-70">Tipe</span>&nbsp;
+                        <span class="font-medium"><?= htmlspecialchars($sidebar_unit->tipe) ?></span>
+                    </p>
+                    <?php if ($sidebar_pemilik): ?>
+                    <p class="font-label-sm text-label-sm text-on-primary-container truncate">
+                        <span class="opacity-70">Pemilik</span>&nbsp;
+                        <span class="font-medium"><?= htmlspecialchars($sidebar_pemilik->nama) ?></span>
+                    </p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- User Profile -->
+        <div class="p-md border-t border-outline-variant">
+            <div class="flex items-center gap-md p-sm rounded-lg bg-surface-container-low">
+                <div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-tertiary-container">person</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-label-md text-label-md font-medium text-on-surface truncate"><?php echo $this->session->username; ?></p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant truncate">Unit Owner</p>
+                </div>
+                <a href="<?= site_url('login/logout'); ?>" class="text-on-surface-variant hover:text-error transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </nav>
