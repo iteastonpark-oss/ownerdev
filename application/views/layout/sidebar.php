@@ -11,10 +11,8 @@
     <div class="h-full flex flex-col">
         <!-- Brand -->
         <div class="p-md border-b border-outline-variant">
-            <a href="<?= site_url(''); ?>" class="flex items-center gap-base">
-                <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
-                    <span class="material-symbols-outlined text-on-primary">apartment</span>
-                </div>
+            <a href="<?= site_url(''); ?>" class="flex items-center gap-md">
+                <span class="material-symbols-outlined text-primary">apartment</span>
                 <div class="flex flex-col">
                     <span class="font-label-md text-label-md font-bold text-on-surface">EPR Jatinangor</span>
                     <span class="font-label-sm text-label-sm text-on-surface-variant">Owner Portal</span>
@@ -93,9 +91,7 @@
         <!-- User Profile -->
         <div class="p-md border-t border-outline-variant">
             <div class="flex items-center gap-md p-sm rounded-lg bg-surface-container-low">
-                <div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center">
-                    <span class="material-symbols-outlined text-on-tertiary-container">person</span>
-                </div>
+                <span class="material-symbols-outlined text-on-surface-variant">person</span>
                 <div class="flex-1 min-w-0">
                     <p class="font-label-md text-label-md font-medium text-on-surface truncate"><?php echo $this->session->username; ?></p>
                     <p class="font-label-sm text-label-sm text-on-surface-variant truncate">Unit Owner</p>
