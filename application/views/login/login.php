@@ -81,7 +81,7 @@
 </style>
 
 <!-- Main Content -->
-<main class="min-h-screen flex relative overflow-hidden bg-background">
+<main class="min-h-screen flex relative bg-background">
     <!-- ===== DECORATIVE LEFT PANEL ===== -->
     <div class="hidden lg:flex lg:w-[480px] xl:w-[560px] relative flex-shrink-0 overflow-hidden bg-primary">
         <!-- Animated gradient overlay -->
@@ -162,7 +162,7 @@
     </div>
 
     <!-- ===== RIGHT PANEL - LOGIN FORM ===== -->
-    <div class="flex-1 flex items-center justify-center relative px-margin-mobile py-lg">
+    <div class="flex-1 flex justify-center relative px-margin-mobile py-lg">
         <!-- Background decoration -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] bg-primary-fixed/10 rounded-full blur-[100px] animate-pulse-glow"></div>
@@ -170,7 +170,7 @@
         </div>
 
         <!-- Login Card -->
-        <div class="relative z-10 w-full max-w-md">
+        <div class="relative z-10 w-full max-w-md my-auto">
             <!-- Mobile Brand (visible on small screens) -->
             <div class="lg:hidden text-center mb-lg animate-slide-up">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary shadow-lg mb-md">

@@ -14,9 +14,6 @@
             <button onclick="toggleSidebar();" class="md:hidden rounded-lg hover:bg-primary-container/20 transition-colors p-base">
                 <span class="material-symbols-outlined">menu</span>
             </button>
-            <button onclick="window.history.back();" class="rounded-lg hover:bg-primary-container/20 transition-colors p-base">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
             <div class="flex flex-col min-w-0">
                 <span class="font-headline-sm text-headline-sm font-bold truncate"><?= $this->bm_model->get()->judul; ?></span>
                 <span class="font-label-sm text-label-sm text-on-primary/80 uppercase tracking-wider truncate hidden sm:block">Building Management System</span>
