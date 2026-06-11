@@ -68,8 +68,8 @@ $navbar = "layout/navbar";
             $this->load->view($navbar);
             ?>
             <!-- Page content -->
-            <div class="pl-64">
-                <div class="px-md pb-md pt-sm">
+            <div class="md:pl-64">
+                <div class="px-sm md:px-md pb-md pt-sm">
 
                     <?php
                     require_once $page . '.php';

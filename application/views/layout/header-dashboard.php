@@ -44,7 +44,7 @@
             </div>
         </div>
         <!-- Mobile Toggle -->
-        <button class="md:hidden text-on-primary">
+        <button class="md:hidden text-on-primary" onclick="toggleSidebar();">
             <span class="material-symbols-outlined">menu</span>
         </button>
     </div>

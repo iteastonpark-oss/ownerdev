@@ -7,7 +7,10 @@
  */
 ?>
 
-<nav class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant shadow-sm z-40 transition-all duration-300" id="sidenav-main">
+<!-- Backdrop overlay saat sidebar terbuka di mobile -->
+<div id="sidenav-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+<nav class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant shadow-sm z-40 transition-transform duration-300 -translate-x-full md:translate-x-0" id="sidenav-main">
     <div class="h-full flex flex-col">
         <!-- Brand -->
         <div class="px-md border-b border-outline-variant flex items-center" style="height:64px">
@@ -103,3 +106,27 @@
         </div>
     </div>
 </nav>
+
+<script>
+    function toggleSidebar() {
+        var nav = document.getElementById('sidenav-main');
+        var backdrop = document.getElementById('sidenav-backdrop');
+        var opened = !nav.classList.contains('-translate-x-full');
+        if (opened) {
+            nav.classList.add('-translate-x-full');
+            backdrop.classList.add('hidden');
+        } else {
+            nav.classList.remove('-translate-x-full');
+            backdrop.classList.remove('hidden');
+        }
+    }
+    // Tutup sidebar setelah pilih menu di mobile
+    document.querySelectorAll('#sidenav-main a').forEach(function (a) {
+        a.addEventListener('click', function () {
+            if (window.innerWidth < 768) {
+                document.getElementById('sidenav-main').classList.add('-translate-x-full');
+                document.getElementById('sidenav-backdrop').classList.add('hidden');
+            }
+        });
+    });
+</script>
