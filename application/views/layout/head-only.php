@@ -3,7 +3,7 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="manifest" href="<?php echo base_url('manifest.json') ?>"/>
     <link rel="shortcut icon" href="<?php echo base_url('assets/icons/icon.png') ?>" type="image/png">
     <link rel="apple-touch-icon" href="<?php echo base_url('assets/icons/icon-192.png') ?>" type="image/png">
