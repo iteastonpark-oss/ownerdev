@@ -68,7 +68,12 @@ class Pbb extends CI_Controller
 			return;
 		}
 
-		$file_path = BMS_UPLOAD_PATH . 'pbb_pdf/' . $detail->file_pdf;
+		// Deteksi format: path baru mengandung '/'
+		if (strpos($detail->file_pdf, '/') !== false) {
+			$file_path = BMS_UPLOAD_PATH . $detail->file_pdf;
+		} else {
+			$file_path = BMS_UPLOAD_PATH . 'pbb_pdf/' . $detail->file_pdf;
+		}
 
 		if (!file_exists($file_path)) {
 			$this->pesan->pesan_danger('File PDF tidak ditemukan. Hubungi manajemen.');
