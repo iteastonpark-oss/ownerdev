@@ -31,7 +31,7 @@ $navbar = "layout/navbar";
 
 <?php if ($this->session->login && $this->session->tipe == 'owner'): ?>
     <!-- Dashboard Layout (Sudah Login) -->
-    <?php require_once 'layout/header-dashboard.php'; ?>
+    <?php require_once 'layout/head-only.php'; ?>
     <body class="bg-background min-h-screen">
 
         <script>
