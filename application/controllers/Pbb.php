@@ -83,10 +83,14 @@ class Pbb extends CI_Controller
 
 		$filename = 'PBB_' . $this->session->username . '_' . $detail->tahun . '.pdf';
 
+		// Bersihkan output buffer CI3 sebelum stream PDF
+		while (ob_get_level()) ob_end_clean();
+
 		header('Content-Type: application/pdf');
 		header('Content-Disposition: inline; filename="' . $filename . '"');
 		header('Content-Length: ' . filesize($file_path));
 		header('Cache-Control: private, max-age=0, must-revalidate');
+		header('Pragma: public');
 		readfile($file_path);
 		exit;
 	}
