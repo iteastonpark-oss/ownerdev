@@ -8,7 +8,7 @@
 ?>
 
 <!-- Top navbar -->
-<nav class="fixed top-0 left-0 md:left-64 right-0 bg-primary text-on-primary border-b border-primary-container shadow-sm z-30">
+<nav class="fixed top-0 left-0 md:left-64 right-0 bg-primary text-on-primary border-b border-primary-container shadow-sm z-50">
     <div class="flex justify-between items-center px-sm md:px-md" style="height:64px">
         <div class="flex items-center gap-sm min-w-0">
             <button onclick="toggleSidebar();" class="md:hidden rounded-lg hover:bg-primary-container/20 transition-colors p-base">

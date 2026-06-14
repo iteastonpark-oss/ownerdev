@@ -68,7 +68,12 @@ class Pbb extends CI_Controller
 			return;
 		}
 
-		$file_path = BMS_UPLOAD_PATH . 'pbb_pdf/' . $detail->file_pdf;
+		// Deteksi format: path baru mengandung '/'
+		if (strpos($detail->file_pdf, '/') !== false) {
+			$file_path = BMS_UPLOAD_PATH . $detail->file_pdf;
+		} else {
+			$file_path = BMS_UPLOAD_PATH . 'pbb_pdf/' . $detail->file_pdf;
+		}
 
 		if (!file_exists($file_path)) {
 			$this->pesan->pesan_danger('File PDF tidak ditemukan. Hubungi manajemen.');
@@ -78,10 +83,14 @@ class Pbb extends CI_Controller
 
 		$filename = 'PBB_' . $this->session->username . '_' . $detail->tahun . '.pdf';
 
+		// Bersihkan output buffer CI3 sebelum stream PDF
+		while (ob_get_level()) ob_end_clean();
+
 		header('Content-Type: application/pdf');
 		header('Content-Disposition: inline; filename="' . $filename . '"');
 		header('Content-Length: ' . filesize($file_path));
 		header('Cache-Control: private, max-age=0, must-revalidate');
+		header('Pragma: public');
 		readfile($file_path);
 		exit;
 	}
