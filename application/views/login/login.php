@@ -237,7 +237,7 @@
                     </div>
 
                     <!-- Login Button -->
-                    <button class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
+                    <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
                         <span class="material-symbols-outlined" style="font-size: 20px;">login</span>
                         Masuk
                     </button>
@@ -370,5 +370,23 @@
             render(''); open();
         }
     });
+
+    // Cegah pengiriman OTP ganda: nonaktifkan tombol setelah submit valid
+    // (mengatasi user menekan tombol berkali-kali / Enter berulang saat proses kirim)
+    (function () {
+        var submitting = false;
+        select.form.addEventListener('submit', function (e) {
+            if (e.defaultPrevented) return;        // validasi unit gagal → jangan disable
+            if (submitting) { e.preventDefault(); return; }
+            submitting = true;
+            var btn = document.getElementById('btn-login');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 20px;">hourglass_top</span> Mengirim OTP...';
+            }
+        });
+    })();
 })();
 </script>
