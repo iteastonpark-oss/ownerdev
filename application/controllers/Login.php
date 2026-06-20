@@ -34,6 +34,33 @@ class Login extends CI_Controller
 		if ($cek > 0) {
 			$data = $this->apl->getSelectedData("bast", $where)->row();
 
+			// Cooldown 60 detik: bila OTP untuk unit & nomor ini baru saja dikirim,
+			// jangan kirim ulang (cegah OTP ganda dari double-submit / multi-tab).
+			// uid sesi memakai ulang baris bast_login terbaru agar OTP lama tetap bisa diverifikasi.
+			$recent = $this->db->where('id_bast', $id_bast)
+				->where('hp', $hp)
+				->where('tm >=', date('Y-m-d H:i:s', time() - 60))
+				->order_by('tm', 'desc')
+				->limit(1)
+				->get('bast_login')
+				->row();
+
+			if ($recent) {
+				$this->session->set_userdata(array(
+					'id_bast' => $data->id_bast,
+					'id_pemilik' => $data->id_pemilik,
+					'id_unit' => $data->id_unit,
+					'hp' => $hp,
+					'login' => '0',
+					'tipe' => 'owner',
+					'uid' => $recent->uid,
+					'id_admin' => 0,
+				));
+				$this->pesan->pesan_success("OTP sudah dikirim. Mohon tunggu hingga 60 detik sebelum meminta ulang.");
+				redirect(site_url('auth/otp'));
+				return;
+			}
+
 			$uid = uniqid();
 			$data_session = array(
 				'id_bast' => $data->id_bast,
