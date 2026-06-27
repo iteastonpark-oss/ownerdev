@@ -80,7 +80,7 @@ class Blast
 			CURLOPT_POSTFIELDS => json_encode($payload),
 			CURLOPT_SSL_VERIFYHOST => 0,
 			CURLOPT_SSL_VERIFYPEER => 0,
-			CURLOPT_TIMEOUT => 30,
+			CURLOPT_TIMEOUT => 10,
 		));
 
 		$response = curl_exec($curl);
