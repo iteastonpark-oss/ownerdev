@@ -109,8 +109,10 @@ Building Management ';
 					return;
 				}
 
-				$this->pesan->pesan_warning("OTP gagal dikirim ke WhatsApp. Silakan coba beberapa saat lagi.");
-				redirect($_SERVER['HTTP_REFERER']);
+				// OTP sudah diinsert ke DB dan mungkin sudah terkirim (WA gateway lambat/timeout).
+				// Tetap arahkan ke halaman OTP agar user bisa verifikasi, bukan balik ke login.
+				$this->pesan->pesan_warning("OTP mungkin terlambat diterima. Silakan tunggu beberapa saat atau cek link di WhatsApp.");
+				redirect(site_url('auth/otp'));
 				return;
 			}
 
