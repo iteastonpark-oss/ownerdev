@@ -31,6 +31,17 @@
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .btn-spinner {
+        width: 18px; height: 18px;
+        border: 2px solid rgba(255,255,255,0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+    }
 
     .animate-float { animation: float 6s ease-in-out infinite; }
     .animate-float-delayed { animation: float-delayed 7s ease-in-out 1s infinite; }
@@ -237,9 +248,9 @@
                     </div>
 
                     <!-- Login Button -->
-                    <button class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
-                        <span class="material-symbols-outlined" style="font-size: 20px;">login</span>
-                        Masuk
+                    <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
+                        <span id="btn-icon" class="material-symbols-outlined" style="font-size: 20px;">login</span>
+                        <span id="btn-text">Masuk</span>
                     </button>
                 </form>
 
@@ -360,7 +371,7 @@
         }
     });
 
-    // Block submit if no valid unit picked
+    // Block submit if no valid unit picked; show loading state on valid submit
     select.form.addEventListener('submit', function (e) {
         if (!select.value) {
             e.preventDefault();
@@ -368,7 +379,19 @@
             input.focus();
             input.placeholder = 'Pilih unit terlebih dahulu';
             render(''); open();
+            return;
         }
+        // Show loading state
+        var btn  = document.getElementById('btn-login');
+        var icon = document.getElementById('btn-icon');
+        var txt  = document.getElementById('btn-text');
+        var spinner = document.createElement('span');
+        spinner.className = 'btn-spinner';
+        icon.replaceWith(spinner);
+        txt.textContent = 'Mengirim OTP…';
+        btn.disabled = true;
+        btn.style.opacity = '0.85';
+        btn.style.cursor  = 'not-allowed';
     });
 })();
 </script>
