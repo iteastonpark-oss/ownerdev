@@ -289,6 +289,7 @@
 
 	<span><b><small>Cara Pembayaran :</small> </b></span>
 	<?php
+	if (!isset($va2)) $va2 = array();
 	$id_group = isset($unit->id_group) ? (string) $unit->id_group : '';
 	$is_group_three = ($id_group === '3');
 	?>

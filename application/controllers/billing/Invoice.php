@@ -832,6 +832,10 @@ class="dropdown-item" target="_blank">
 			'inv' => 1,
 			'hapus' => '0',
 		))->result();
+		$data['va2'] = $this->db->select('*')
+			->from('billing_va')
+			->where(array('id_billing' => $id, 'hapus' => 0))
+			->get()->result();
 		$data['redirect'] = isset($_GET['red']) ? $_GET['red'] : '';
 		$this->load->view('billing/invoice/share', $data);
 	}
