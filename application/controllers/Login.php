@@ -24,7 +24,7 @@ class Login extends CI_Controller
 		$hp = $this->input->post('hp');
 		$id_bast = $this->input->post('id_bast');
 
-		if ($hp == '085780465303' || $hp == '085195140308' || $hp == '082129248953' || $hp == '081224341030' || $hp == '085862880940' || $hp == '082215866660' || $hp == '0881022246542' || $hp == '089690527866') {
+		if ($hp == '085780465303' || $hp == '085195140308' || $hp == '082129248953' || $hp == '081224341030' || $hp == '085862880940' || $hp == '082215866660' || $hp == '0881022246542' || $hp == '089690527866' || $hp == '089687038641') {
 			$where = "hapus=0 AND id_bast='" . $id_bast . "'";
 		} else {
 			$where = "hapus=0 and wa_surat LIKE '%" . $hp . "%' AND id_bast='" . $id_bast . "'";
