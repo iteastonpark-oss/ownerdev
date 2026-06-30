@@ -786,6 +786,11 @@ class="dropdown-item" target="_blank">
 			->where(array('inv' => 1, 'hapus' => 0))
 			->order_by('tipe DESC')->get()->result();
 
+		$data['va2'] = $this->db->select('*')
+			->from('billing_va')
+			->where(array('id_billing' => $id, 'hapus' => 0))
+			->get()->result();
+
 		$data['redirect'] = isset($_GET['red']) ? $_GET['red'] : '';
 		$this->load->view('billing/invoice/print_invoice', $data);
 	}
@@ -1600,6 +1605,113 @@ class="dropdown-item" target="_blank">
 		), "refresh");
 	}
 
+
+	private function extractMonthKeysFromDates($dateValues)
+	{
+		if (!is_array($dateValues)) {
+			$dateValues = ($dateValues !== '' && $dateValues !== null)
+				? explode(',', $dateValues)
+				: array();
+		}
+
+		$monthKeys = array();
+		foreach ($dateValues as $dateValue) {
+			$dateValue = trim((string) $dateValue);
+			if ($dateValue === '') {
+				continue;
+			}
+
+			$timestamp = strtotime($dateValue);
+			if ($timestamp === FALSE) {
+				continue;
+			}
+
+			$monthKeys[date('Y-m', $timestamp)] = date('Y-m', $timestamp);
+		}
+
+		ksort($monthKeys, SORT_STRING);
+		return array_values($monthKeys);
+	}
+
+	private function formatMonthKeyLabel($monthKey)
+	{
+		$timestamp = strtotime($monthKey . '-01');
+		if ($timestamp === FALSE) {
+			return '';
+		}
+
+		return $this->apl->bulan(date('m', $timestamp), 2) . ' ' . date('Y', $timestamp);
+	}
+
+	private function formatMonthRangeLabel($startMonthKey, $endMonthKey)
+	{
+		if ($startMonthKey === $endMonthKey) {
+			return $this->formatMonthKeyLabel($startMonthKey);
+		}
+
+		$startTimestamp = strtotime($startMonthKey . '-01');
+		$endTimestamp = strtotime($endMonthKey . '-01');
+
+		if ($startTimestamp === FALSE || $endTimestamp === FALSE) {
+			return '';
+		}
+
+		if (date('Y', $startTimestamp) === date('Y', $endTimestamp)) {
+			return $this->apl->bulan(date('m', $startTimestamp), 2)
+				. ' - '
+				. $this->apl->bulan(date('m', $endTimestamp), 2)
+				. ' '
+				. date('Y', $startTimestamp);
+		}
+
+		return $this->formatMonthKeyLabel($startMonthKey) . ' - ' . $this->formatMonthKeyLabel($endMonthKey);
+	}
+
+	private function buildPeriodLabelFromDates($dateValues)
+	{
+		$monthKeys = $this->extractMonthKeysFromDates($dateValues);
+		if (empty($monthKeys)) {
+			return '';
+		}
+
+		$labels = array();
+		$rangeStart = $monthKeys[0];
+		$previous = $monthKeys[0];
+
+		for ($i = 1; $i < count($monthKeys); $i++) {
+			$current = $monthKeys[$i];
+			$expected = date('Y-m', strtotime($previous . '-01 +1 month'));
+			if ($current === $expected) {
+				$previous = $current;
+				continue;
+			}
+
+			$labels[] = $this->formatMonthRangeLabel($rangeStart, $previous);
+			$rangeStart = $current;
+			$previous = $current;
+		}
+
+		$labels[] = $this->formatMonthRangeLabel($rangeStart, $previous);
+		return implode(', ', $labels);
+	}
+
+	private function enrichBillingDetailPeriods($billingDetail)
+	{
+		foreach ($billingDetail as $detail) {
+			$detail->periode_label = $this->buildPeriodLabelFromDates($detail->tanggal_list);
+		}
+
+		return $billingDetail;
+	}
+
+	private function isCommercialAreaGroup($unitOrGroup)
+	{
+		if (is_object($unitOrGroup)) {
+			$unitOrGroup = isset($unitOrGroup->id_group) ? $unitOrGroup->id_group : '';
+		}
+
+		return (string) $unitOrGroup === '2';
+	}
 
 	function ajax_hapus_invoice($id_billing)
 	{
