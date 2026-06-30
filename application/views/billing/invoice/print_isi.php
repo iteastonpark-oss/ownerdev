@@ -288,35 +288,78 @@
 
 
 	<span><b><small>Cara Pembayaran :</small> </b></span>
-	<p><b>Pembayaran Dapat di transfer ke Rek. Virtual Account berikut :</b></p>
-	<table class="table table-sm small table-borderless">
-		<tr>
-			<?php
+	<?php
+	$id_group = isset($unit->id_group) ? (string) $unit->id_group : '';
+	$is_group_three = ($id_group === '3');
+	?>
+	<?php if ($is_group_three) { ?>
+		<p><b>Pembayaran Dapat di transfer ke Bank berikut :</b></p>
+		<table class="table table-sm small table-borderless">
+			<tr>
+				<td>Bank</td>
+				<td>: BJB</td>
+			</tr>
+			<tr>
+				<td>A/N</td>
+				<td>: P3SRS Easton Park Residence Jatinangor</td>
+			</tr>
+			<tr>
+				<td>No Rek.</td>
+				<td>: 00000-12122021</td>
+			</tr>
+		</table>
+	<?php } else { ?>
+		<p><b>Pembayaran Dapat di transfer ke Rek. Virtual Account berikut :</b></p>
+		<table class="table table-sm small table-borderless">
+			<tr>
+				<?php
+				$pemilik_id = $this->apl->get_nilai_pilih("bast", "id_pemilik", array('id_bast' => $billing->id_bast));
+				$nama_rekening = $this->apl->get_nilai_pilih("pemilik", "nama", array('id_pemilik' => $pemilik_id));
 
-			foreach ($va as $vir) {
-				$kode_va = ($vir->tipe == '1') ? $unit->va : $unit->va2;
-			?>
-				<td>
-					<table style="font-size: 8pt">
-						<tr>
-							<td>BANK</td>
-							<td>: <?php echo $vir->nama; ?></td>
-						</tr>
-						<tr>
-							<td>A/N</td>
-							<td>: <?php
-									$pemilik_id = $this->apl->get_nilai_pilih("bast", "id_pemilik", array('id_bast' => $billing->id_bast));
-									echo $this->apl->get_nilai_pilih("pemilik", "nama", array('id_pemilik' => $pemilik_id));
-									?></td>
-						</tr>
-						<tr>
-							<td>A/V</td>
-							<td>: <?php echo $vir->va . " - " . $kode_va; ?></td>
-						</tr>
-					</table>
-				</td>
-			<?php
-			}
-			?>
-		</tr>
-	</table>
+				foreach ($va as $vir) {
+					$kode_va = ($vir->tipe == '1') ? trim((string) $unit->va) : trim((string) $unit->va2);
+					$nomor_va = trim((string) $vir->va);
+					$tampil_va = ($kode_va !== '') ? ($nomor_va . " - " . $kode_va) : $nomor_va;
+				?>
+					<td>
+						<table style="font-size: 8pt">
+							<tr>
+								<td>BANK</td>
+								<td>: <?php echo $vir->nama; ?></td>
+							</tr>
+							<tr>
+								<td>A/N</td>
+								<td>: <?php echo $nama_rekening; ?></td>
+							</tr>
+							<tr>
+								<td>A/V</td>
+								<td>: <?php echo $tampil_va; ?></td>
+							</tr>
+						</table>
+					</td>
+				<?php
+				}
+				foreach ($va2 as $vir) {
+				?>
+					<td>
+						<table style="font-size: 8pt">
+							<tr>
+								<td>BANK</td>
+								<td>: <?php echo ($vir->bank == 'BJB VA Real-Time Notification') ? $vir->bank . ' / Kuitansi' : $vir->bank; ?></td>
+							</tr>
+							<tr>
+								<td>A/N</td>
+								<td>: <?php echo $nama_rekening; ?></td>
+							</tr>
+							<tr>
+								<td>A/V</td>
+								<td>: <?php echo $vir->va_number; ?></td>
+							</tr>
+						</table>
+					</td>
+				<?php
+				}
+				?>
+			</tr>
+		</table>
+	<?php } ?>
