@@ -128,7 +128,7 @@ class Bayar_Model extends CI_Model
 			->from($from)
 			//->group_by("DATE_FORMAT(`tanggal`, '%Y-%m')")
 			->group_by("invoice")
-			->order_by('tanggal,status');
+			->order_by('tanggal DESC, status');
 	}
 
 	public function getDataBillingTotal($id_unit)
