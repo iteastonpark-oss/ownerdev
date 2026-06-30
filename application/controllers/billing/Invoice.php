@@ -687,6 +687,10 @@ class="dropdown-item" target="_blank">
 			->where(array('inv' => 1, 'hapus' => 0))
 			->order_by('tipe DESC')->get()->result();
 
+		$data['va2'] = $this->db->select('*')
+			->from('billing_va')
+			->where(array('id_billing' => $id, 'hapus' => 0))
+			->get()->result();
 
 		$per = $this->db->select("MIN(`billing_detail`.`tanggal`) as tanggal_awal
                   , MAX(`billing_detail`.`tanggal`) as tanggal_ahir")
