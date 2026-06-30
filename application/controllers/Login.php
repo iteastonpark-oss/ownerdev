@@ -61,10 +61,10 @@ class Login extends CI_Controller
 
 			$phone = $hp;
 			$message = 'Kode OTP Anda adalah *' . $otp . '*
-Digunakan untuk Owner EPR Jatinangor 
-Atau klik link : 
+Digunakan untuk Owner EPR Jatinangor
+Atau klik link :
 ' . site_url('auth/link/' . $otp);
-			$message .= '	
+			$message .= '
 
 _____________
 Mohon maaf untuk informasi lebih lanjut harap menghubungi di :
@@ -74,50 +74,50 @@ WA (Chat Only): 0823-1212-2021
 Website : https://eprjatinangor.com
 
 Building Management ';
-			$wa_response = $this->blast->send_WA($phone, $message, $id_bast);
-			$wa_success = 0;
-			$wa_failed = 0;
-			$wa_message_raw = '';
 
+			// Set pesan sebelum commit session
+			$this->pesan->pesan_success("OTP atau link Verifikasi sedang dikirim via WhatsApp");
+
+			// Commit session ke DB agar flash message & data login tersimpan
+			session_write_close();
+
+			// Kirim redirect ke browser — user langsung masuk halaman OTP
+			header('Location: ' . site_url('auth/otp'));
+			header('Content-Length: 0');
+			header('Connection: close');
+
+			if (function_exists('fastcgi_finish_request')) {
+				fastcgi_finish_request(); // koneksi browser ditutup, PHP lanjut di background
+			} else {
+				ob_end_flush();
+				flush();
+			}
+
+			// === BACKGROUND: user sudah di halaman OTP, baru kirim WA ===
+			ignore_user_abort(true);
+			set_time_limit(60);
+
+			$wa_response = $this->blast->send_WA($phone, $message, $id_bast);
+
+			// Log status WA ke bast_login untuk monitoring
+			$wa_success = 0;
+			$wa_message_raw = '';
 			if (is_array($wa_response)) {
 				$wa_success = isset($wa_response['success']) ? (int) $wa_response['success'] : 0;
-				$wa_failed = isset($wa_response['failed']) ? (int) $wa_response['failed'] : 0;
 				if (isset($wa_response['errors'][0]['message'])) {
 					$wa_message_raw = $wa_response['errors'][0]['message'];
-				}
-				if ($wa_message_raw === '' && isset($wa_response['message'])) {
+				} elseif (isset($wa_response['message'])) {
 					$wa_message_raw = $wa_response['message'];
 				}
 			} elseif (is_object($wa_response) && isset($wa_response->message)) {
 				$wa_message_raw = $wa_response->message;
 			}
 
-			$wa_message = strtolower((string) $wa_message_raw);
-			$is_credential_error = strpos($wa_message, 'token invalid') !== false
-				|| strpos($wa_message, 'device expired') !== false
-				|| strpos($wa_message, 'invalid key') !== false
-				|| strpos($wa_message, 'api key') !== false
-				|| strpos($wa_message, 'not found') !== false;
+			$this->apl->updateData("bast_login", array(
+				'wa_status' => $wa_success > 0 ? 'sent' : 'failed',
+				'wa_message' => substr((string) $wa_message_raw, 0, 255),
+			), array('uid' => $uid));
 
-			if ($wa_success < 1 && $wa_failed > 0) {
-				if ($is_credential_error) {
-					$view_data = array(
-						'judul' => 'Maintenance',
-						'page' => 'layout/maintenance',
-					);
-					$this->load->view('home_login', $view_data);
-					return;
-				}
-
-				// OTP sudah diinsert ke DB dan mungkin sudah terkirim (WA gateway lambat/timeout).
-				// Tetap arahkan ke halaman OTP agar user bisa verifikasi, bukan balik ke login.
-				$this->pesan->pesan_warning("OTP mungkin terlambat diterima. Silakan tunggu beberapa saat atau cek link di WhatsApp.");
-				redirect(site_url('auth/otp'));
-				return;
-			}
-
-			$this->pesan->pesan_success("OTP atau link Verifikasi sudah dikirim dengan Whatsapp");
-			redirect(site_url('auth/otp'));
 			return;
 		} else {
 			$this->pesan->pesan_warning("Gagal Masuk Mohon Hubungi Bagian TR untuk pendaftaran Nomor Wa / Pengecekan Lebih Lanjut di Nomor : 0823-1212-2021");
