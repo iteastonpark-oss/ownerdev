@@ -12,7 +12,7 @@ class Blast
 	var $base_url = 'https://api.watzap.id/v1';
 	var $credential_checked = false;
 
-	function __construct($apiKey = 'HLNW0LHSBP6JSBS3', $numberKey = 'nJKlpasNjTmpwCGN')
+	function __construct($apiKey = 'HLNW0LHSBP6JSBS3', $numberKey = 'zw0ekX6cyRQA3ghf')
 	{
 		$CI = &get_instance();
 		$this->db = $CI->load->database('default', TRUE);
@@ -252,6 +252,17 @@ class Blast
 				$summary['success']++;
 			} else {
 				$this->logFailure('send_WA', $phone, $response);
+				$errMsg = isset($response['message']) ? (string) $response['message'] : 'unknown error';
+				$this->insertData('call', array(
+					'message' => $text,
+					'phone' => $phone,
+					'status' => 0,
+					'keluar_masuk' => 0,
+					'id_admin' => $id_admin,
+					'id_bast' => $id_bast,
+					'tanggal' => date('Y-m-d'),
+					'note' => substr($errMsg, 0, 50),
+				));
 				$summary['failed']++;
 				$summary['errors'][] = $this->makeErrorEntry($phone, $response);
 			}
@@ -406,6 +417,17 @@ class Blast
 				$summary['success']++;
 			} else {
 				$this->logFailure('send_WA_document', $phone, $response);
+				$errMsg = isset($response['message']) ? (string) $response['message'] : 'unknown error';
+				$this->insertData('call', array(
+					'message' => $caption,
+					'phone' => $phone,
+					'status' => 0,
+					'keluar_masuk' => 0,
+					'id_admin' => $id_admin,
+					'id_bast' => $id_bast,
+					'tanggal' => date('Y-m-d'),
+					'note' => substr($errMsg, 0, 50),
+				));
 				$summary['failed']++;
 				$summary['errors'][] = $this->makeErrorEntry($phone, $response);
 			}
