@@ -535,6 +535,10 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 
+// Path ke folder upload BMS (shared dengan bmsdev)
+if (!defined('BMS_UPLOAD_PATH')) {
+    define('BMS_UPLOAD_PATH', '/www/wwwroot/bms.eprjatinangor.com/upload/');
+}
 
 
 /**
