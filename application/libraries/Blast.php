@@ -12,7 +12,7 @@ class Blast
 	var $base_url = 'https://api.watzap.id/v1';
 	var $credential_checked = false;
 
-	function __construct($apiKey = 'HLNW0LHSBP6JSBS3', $numberKey = 'nJKlpasNjTmpwCGN')
+	function __construct($apiKey = 'HLNW0LHSBP6JSBS3', $numberKey = 'zw0ekX6cyRQA3ghf')
 	{
 		$CI = &get_instance();
 		$this->db = $CI->load->database('default', TRUE);
