@@ -252,6 +252,17 @@ class Blast
 				$summary['success']++;
 			} else {
 				$this->logFailure('send_WA', $phone, $response);
+				$errMsg = isset($response['message']) ? (string) $response['message'] : 'unknown error';
+				$this->insertData('call', array(
+					'message' => $text,
+					'phone' => $phone,
+					'status' => 0,
+					'keluar_masuk' => 0,
+					'id_admin' => $id_admin,
+					'id_bast' => $id_bast,
+					'tanggal' => date('Y-m-d'),
+					'note' => substr($errMsg, 0, 50),
+				));
 				$summary['failed']++;
 				$summary['errors'][] = $this->makeErrorEntry($phone, $response);
 			}
@@ -406,6 +417,17 @@ class Blast
 				$summary['success']++;
 			} else {
 				$this->logFailure('send_WA_document', $phone, $response);
+				$errMsg = isset($response['message']) ? (string) $response['message'] : 'unknown error';
+				$this->insertData('call', array(
+					'message' => $caption,
+					'phone' => $phone,
+					'status' => 0,
+					'keluar_masuk' => 0,
+					'id_admin' => $id_admin,
+					'id_bast' => $id_bast,
+					'tanggal' => date('Y-m-d'),
+					'note' => substr($errMsg, 0, 50),
+				));
 				$summary['failed']++;
 				$summary['errors'][] = $this->makeErrorEntry($phone, $response);
 			}
