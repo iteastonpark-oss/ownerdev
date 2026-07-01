@@ -53,7 +53,7 @@ class Login extends CI_Controller
 			$this->apl->insertData("bast_login", array(
 				'hp' => $hp,
 				'id_bast' => $id_bast,
-				'expired' => date('Y-m-d H:i:s'),
+				'expired' => date('Y-m-d H:i:s', strtotime('+5 minutes')),
 				'status' => 0,
 				'otp' => $otp,
 				'uid' => $uid,
@@ -132,27 +132,113 @@ Building Management ';
 	{
 		$otp = $this->input->post('otp');
 		$otp = $otp[0] . $otp[1] . $otp[2] . $otp[3];
-		$login = $this->apl->getSelectedData("bast_login", array(
-			'otp' => $otp,
-			'uid' => $this->session->uid,
-		))->row();
+		$login = $this->db->select('*')
+			->from('bast_login')
+			->where(array('otp' => $otp, 'uid' => $this->session->uid))
+			->get()->row();
+
 		if (!$login) {
 			$this->pesan->pesan_warning("OTP Salah/Tidak Sesuai");
 			redirect($_SERVER['HTTP_REFERER']);
-		} else {
-			$this->apl->updateData(
-				"bast_login",
-				array('status' => 1),
-				array(
-					'otp' => $otp,
-					'uid' => $this->session->uid,
-				)
-			);
-			$this->session->login = '1';
-			$this->pesan->pesan_success("Success");
-			$red = (isset($_SESSION['redirect'])) ? $_SESSION['redirect'] : '';
-			redirect(site_url($red));
+			return;
 		}
+
+		if (strtotime($login->expired) < time()) {
+			$this->pesan->pesan_warning("OTP sudah kadaluarsa. Silakan kirim ulang OTP.");
+			redirect(site_url('auth/otp'));
+			return;
+		}
+
+		$this->apl->updateData("bast_login", array('status' => 1),
+			array('otp' => $otp, 'uid' => $this->session->uid)
+		);
+		$this->session->login = '1';
+		$this->pesan->pesan_success("Verifikasi berhasil");
+		$red = (isset($_SESSION['redirect'])) ? $_SESSION['redirect'] : '';
+		redirect(site_url($red));
+	}
+
+	function resend_otp()
+	{
+		header('Content-Type: application/json');
+
+		$uid = $this->session->uid;
+		$id_bast = $this->session->id_bast;
+		$hp = $this->session->hp;
+
+		if (!$uid || !$id_bast || !$hp) {
+			echo json_encode(array('success' => false, 'message' => 'Sesi tidak valid, silakan login ulang.'));
+			return;
+		}
+
+		$new_otp = mt_rand(1000, 9999);
+		$new_expired = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+		$new_uid = uniqid();
+
+		// Invalidate OTP lama, insert OTP baru
+		$this->apl->updateData("bast_login", array('status' => 2), array('uid' => $uid));
+		$this->apl->insertData("bast_login", array(
+			'hp' => $hp,
+			'id_bast' => $id_bast,
+			'expired' => $new_expired,
+			'status' => 0,
+			'otp' => $new_otp,
+			'uid' => $new_uid,
+		));
+
+		// Update uid di session ke OTP baru
+		$this->session->uid = $new_uid;
+
+		$expired_ts = strtotime($new_expired);
+
+		$message = 'Kode OTP Anda adalah *' . $new_otp . '*
+Digunakan untuk Owner EPR Jatinangor
+Atau klik link :
+' . site_url('auth/link/' . $new_otp) . '
+
+_____________
+Mohon maaf untuk informasi lebih lanjut harap menghubungi di :
+_Tenant Relation_
+TLP : (022)7780188
+WA (Chat Only): 0823-1212-2021
+Website : https://eprjatinangor.com
+
+Building Management ';
+
+		// Commit session sebelum async
+		session_write_close();
+
+		// Kirim response JSON ke browser
+		echo json_encode(array(
+			'success' => true,
+			'expired_at' => $expired_ts,
+			'message' => 'OTP baru sudah dikirim via WhatsApp.',
+		));
+
+		if (function_exists('fastcgi_finish_request')) {
+			fastcgi_finish_request();
+		} else {
+			ob_end_flush();
+			flush();
+		}
+
+		// Kirim WA di background
+		ignore_user_abort(true);
+		set_time_limit(60);
+
+		$wa_response = $this->blast->send_WA($hp, $message, $id_bast);
+		$wa_success = (is_array($wa_response) && isset($wa_response['success'])) ? (int)$wa_response['success'] : 0;
+		$wa_message_raw = '';
+		if (is_array($wa_response) && isset($wa_response['errors'][0]['message'])) {
+			$wa_message_raw = $wa_response['errors'][0]['message'];
+		} elseif (is_array($wa_response) && isset($wa_response['message'])) {
+			$wa_message_raw = $wa_response['message'];
+		}
+
+		$this->apl->updateData("bast_login", array(
+			'wa_status' => $wa_success > 0 ? 'sent' : 'failed',
+			'wa_message' => substr((string)$wa_message_raw, 0, 255),
+		), array('uid' => $new_uid));
 	}
 
 

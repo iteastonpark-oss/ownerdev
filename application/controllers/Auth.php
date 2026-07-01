@@ -29,12 +29,17 @@ class Auth extends CI_Controller
 
 	public function otp()
 	{
-		$data['judul'] = 'Dashboard'; //Halaman di tampilkan
-		$data['page'] = 'bast/otp'; //Halaman di tampilkan
+		$data['judul'] = 'Dashboard';
+		$data['page'] = 'bast/otp';
 
+		$id_bast = $this->session->id_bast;
+		$login = $this->session->login;
 
-		$id_bast=$this->session->id_bast;
-		$login=$this->session->login;
+		// Ambil expired_at dari bast_login untuk countdown di view
+		$otp_record = $this->db->select('expired')->from('bast_login')
+			->where(array('uid' => $this->session->uid, 'status' => 0))
+			->order_by('id', 'DESC')->limit(1)->get()->row();
+		$data['otp_expired_ts'] = $otp_record ? strtotime($otp_record->expired) : (time() + 300);
 
 		if ($id_bast != '') {
 
