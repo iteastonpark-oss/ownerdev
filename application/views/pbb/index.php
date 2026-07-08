@@ -88,6 +88,13 @@
 							data-id="<?= $d->id_detail; ?>" data-tahun="<?= $d->tahun; ?>" title="Ganti bukti">
 							<i class="fa fa-refresh"></i>
 						</button>
+						<form action="<?= site_url($controller . '/hapus_bukti'); ?>" method="post"
+							class="d-inline" onsubmit="return confirm('Hapus bukti bayar PBB tahun <?= $d->tahun; ?>?')">
+							<input type="hidden" name="id_detail" value="<?= $d->id_detail; ?>">
+							<button type="submit" class="btn btn-sm btn-link p-0 ml-1 text-danger" title="Hapus bukti">
+								<i class="fa fa-trash"></i>
+							</button>
+						</form>
 						<?php else: ?>
 						<button type="button" class="btn btn-sm btn-primary btn-upload-bukti"
 							data-id="<?= $d->id_detail; ?>" data-tahun="<?= $d->tahun; ?>">

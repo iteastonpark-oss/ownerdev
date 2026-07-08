@@ -195,6 +195,38 @@ class Pbb extends CI_Controller
 		redirect('pbb');
 	}
 
+	/** Owner hapus bukti bayar PBB miliknya sendiri. */
+	public function hapus_bukti()
+	{
+		$id_detail = (int) $this->input->post('id_detail');
+		$id_unit   = $this->session->id_unit;
+
+		$detail = $this->db->select('pd.id_detail, pd.tahun, pd.bukti_bayar')
+			->from('pbb_detail pd')
+			->join('pbb', 'pbb.id_pbb = pd.id_pbb')
+			->where('pd.id_detail', $id_detail)
+			->where('pbb.id_unit', $id_unit)
+			->where('pbb.hapus', 0)
+			->get()->row();
+
+		if (!$detail || empty($detail->bukti_bayar)) {
+			$this->pesan->pesan_danger('Data bukti bayar tidak ditemukan.');
+			redirect('pbb');
+			return;
+		}
+
+		$file_path = BMS_UPLOAD_PATH . $detail->bukti_bayar;
+		if (is_file($file_path)) @unlink($file_path);
+
+		$this->db->where('id_detail', $id_detail)->update('pbb_detail', array(
+			'bukti_bayar'      => NULL,
+			'bukti_tgl_upload' => NULL,
+		));
+
+		$this->pesan->pesan_success('Bukti bayar PBB tahun ' . $detail->tahun . ' berhasil dihapus.');
+		redirect('pbb');
+	}
+
 	/** Serve file bukti bayar milik owner yang login (inline, dgn validasi kepemilikan). */
 	public function bukti($id_detail = '')
 	{
