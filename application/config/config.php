@@ -537,7 +537,10 @@ $config['proxy_ips'] = '';
 
 // Path ke folder upload BMS (shared dengan bmsdev)
 if (!defined('BMS_UPLOAD_PATH')) {
-    define('BMS_UPLOAD_PATH', '/www/wwwroot/bms.eprjatinangor.com/upload/');
+    $envBmsUploadPath = getenv('BMS_UPLOAD_PATH');
+    define('BMS_UPLOAD_PATH', ($envBmsUploadPath !== FALSE && $envBmsUploadPath !== '')
+        ? $envBmsUploadPath
+        : '/www/wwwroot/bms.eprjatinangor.com/upload/');
 }
 
 

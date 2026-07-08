@@ -44,6 +44,7 @@
 						<th class="text-center" style="width:110px;">Status Bayar</th>
 						<th class="text-center" style="width:110px;">Dokumen PDF</th>
 						<th class="text-center" style="width:120px;">Tgl Upload</th>
+						<th class="text-center" style="width:150px;">Bukti Bayar</th>
 						<th class="text-center">Aksi</th>
 					</tr>
 				</thead>
@@ -51,6 +52,7 @@
 				<?php foreach ($detail as $d):
 					$lunas   = ((float)$d->tagihan == 0);
 					$has_pdf = !empty($d->file_pdf);
+					$has_bukti = !empty($d->bukti_bayar);
 				?>
 				<tr>
 					<td class="text-center font-weight-bold"><?= $d->tahun; ?></td>
@@ -77,6 +79,26 @@
 						<?= $d->tgl_upload ? date('d/m/Y', strtotime($d->tgl_upload)) : '-'; ?>
 					</td>
 					<td class="text-center">
+						<?php if ($has_bukti): ?>
+						<a href="<?= site_url($controller . '/bukti/' . $d->id_detail); ?>" target="_blank"
+							class="btn btn-sm btn-outline-success" title="Lihat bukti bayar">
+							<i class="fa fa-check-circle"></i> Lihat
+						</a>
+						<button type="button" class="btn btn-sm btn-link p-0 ml-1 btn-upload-bukti"
+							data-id="<?= $d->id_detail; ?>" data-tahun="<?= $d->tahun; ?>" title="Ganti bukti">
+							<i class="fa fa-refresh"></i>
+						</button>
+						<?php else: ?>
+						<button type="button" class="btn btn-sm btn-primary btn-upload-bukti"
+							data-id="<?= $d->id_detail; ?>" data-tahun="<?= $d->tahun; ?>">
+							<i class="fa fa-upload"></i> Upload
+						</button>
+						<?php endif; ?>
+						<?php if ($d->bukti_tgl_upload): ?>
+						<div class="text-muted small mt-1"><?= date('d/m/Y H:i', strtotime($d->bukti_tgl_upload)); ?></div>
+						<?php endif; ?>
+					</td>
+					<td class="text-center">
 						<?php if ($has_pdf): ?>
 						<a href="<?= site_url($controller . '/download/' . $d->id_detail); ?>"
 							target="_blank" class="btn btn-sm btn-danger" title="Lihat/Download PDF">
@@ -95,6 +117,7 @@
 		<div class="alert alert-info mt-3 small">
 			<i class="fa fa-info-circle mr-1"></i>
 			Dokumen PDF PBB diunggah oleh manajemen Easton Park.
+			Bukti bayar PBB dapat Anda unggah sendiri (PDF/JPG/PNG, maks 5&nbsp;MB) dan akan tercatat di sistem manajemen.
 			Jika dokumen tahun tertentu belum tersedia, silakan hubungi kantor manajemen.
 		</div>
 		<?php endif; ?>
@@ -103,3 +126,40 @@
 
 	</div>
 </div>
+
+<!-- Modal upload bukti bayar PBB -->
+<div class="modal fade" id="modalBukti" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<form action="<?= site_url($controller . '/upload_bukti'); ?>" method="post" enctype="multipart/form-data">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title"><i class="fa fa-upload mr-2"></i>Upload Bukti Bayar PBB</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" name="id_detail" id="bukti-id-detail" value="">
+					<p class="small text-muted mb-2">Tahun PBB: <strong id="bukti-tahun">-</strong></p>
+					<div class="form-group mb-2">
+						<label class="small">Pilih file bukti (PDF / JPG / PNG, maks 5 MB)</label>
+						<input type="file" name="bukti" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png" required>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-upload mr-1"></i>Unggah</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script>
+document.querySelectorAll('.btn-upload-bukti').forEach(function (b) {
+	b.addEventListener('click', function () {
+		document.getElementById('bukti-id-detail').value = this.getAttribute('data-id');
+		document.getElementById('bukti-tahun').textContent = this.getAttribute('data-tahun');
+		if (window.jQuery) { jQuery('#modalBukti').modal('show'); }
+		else { document.getElementById('modalBukti').style.display = 'block'; }
+	});
+});
+</script>
