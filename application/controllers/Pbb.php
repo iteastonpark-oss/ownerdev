@@ -104,6 +104,26 @@ class Pbb extends CI_Controller
 	);
 	const BUKTI_MAX_BYTES = 5242880; // 5 MB
 
+	/** Cek header byte asli file sesuai ekstensi yang diklaim (tanpa ext-fileinfo). */
+	private function _cek_magic_bytes($tmp_path, $ext)
+	{
+		$fh = @fopen($tmp_path, 'rb');
+		if (!$fh) return FALSE;
+		$head = fread($fh, 8);
+		fclose($fh);
+
+		if (substr($head, 0, 4) === '%PDF') {
+			return $ext === 'pdf';
+		}
+		if (substr($head, 0, 3) === "\xFF\xD8\xFF") {
+			return in_array($ext, array('jpg', 'jpeg'), true);
+		}
+		if (substr($head, 0, 8) === "\x89PNG\r\n\x1a\n") {
+			return $ext === 'png';
+		}
+		return FALSE;
+	}
+
 	/**
 	 * Owner unggah bukti bayar PBB untuk satu baris tahun (id_detail miliknya).
 	 * File disimpan di BMS_UPLOAD_PATH/pbb_bukti/{tahun}/ dan tercatat di pbb_detail
@@ -151,11 +171,9 @@ class Pbb extends CI_Controller
 			redirect('pbb');
 			return;
 		}
-		// Verifikasi tipe asli (bukan sekadar ekstensi).
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime  = finfo_file($finfo, $f['tmp_name']);
-		finfo_close($finfo);
-		if (!in_array($mime, array_values($this->bukti_mime), true)) {
+		// Verifikasi tipe asli via magic bytes (bukan sekadar ekstensi).
+		// Tidak pakai ext-fileinfo: tidak tersedia di build PHP production.
+		if (!$this->_cek_magic_bytes($f['tmp_name'], $ext)) {
 			$this->pesan->pesan_danger('Isi file tidak sesuai format PDF/JPG/PNG.');
 			redirect('pbb');
 			return;
