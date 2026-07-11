@@ -68,6 +68,20 @@ class Home extends CI_Controller
 					'db_unit.id_group' => '1',
 				))->from('utility_rekening')->get()->row()->meter;
 			//$data['gp'] = $this->bast->getHistoriGantiPemilik($id_bast);
+
+			// Pengumuman acara: yang publish & ditandai tampil di dashboard,
+			// lengkap status RSVP unit ini (untuk CTA "Konfirmasi").
+			$data['pengumuman_acara'] = $this->db
+				->select('a.kode, a.nama, a.deskripsi, a.lokasi, a.tgl_mulai, a.batas_rsvp')
+				->select('p.kehadiran, p.mode')
+				->from('acara a')
+				->join("(SELECT id_acara, kehadiran, mode FROM acara_peserta
+					WHERE id_bast = " . (int) $id_bast . " AND hapus = 0) p", 'p.id_acara = a.id_acara', 'left')
+				->where('a.hapus', 0)
+				->where('a.status', 1)
+				->where('a.tampil_dashboard', 1)
+				->order_by('a.tgl_mulai', 'ASC')
+				->get()->result();
 		}
 		$this->load->view('home', $data);
 
