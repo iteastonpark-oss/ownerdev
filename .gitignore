@@ -46,3 +46,6 @@ tmp_*
 # Sampah
 archive.zip
 pwn.htm
+
+# Environment (kredensial DB/gateway) — jangan pernah di-commit
+.env

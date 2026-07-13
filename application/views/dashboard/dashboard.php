@@ -26,6 +26,50 @@ $controller = strtolower($this->uri->segment(1));
         </div>
     </div>
 
+    <!-- Pengumuman Acara -->
+    <?php if (!empty($pengumuman_acara)):
+        if (!function_exists('dash_acara_tgl')) {
+            function dash_acara_tgl($v)
+            {
+                if (empty($v) || $v === '0000-00-00 00:00:00') return '-';
+                return date('d M Y, H:i', strtotime($v));
+            }
+        }
+    ?>
+        <?php foreach ($pengumuman_acara as $a):
+            $sudah = !empty($a->kehadiran);
+        ?>
+            <div class="bg-tertiary-container rounded-xl border border-outline-variant p-lg mb-lg">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-md">
+                    <div class="flex items-start gap-md min-w-0">
+                        <div class="w-12 h-12 rounded-xl bg-tertiary/20 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-tertiary" style="font-size:28px; font-variation-settings:'FILL' 1;">campaign</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-label-md text-label-md text-tertiary font-semibold mb-xs">Pengumuman Acara</p>
+                            <h2 class="font-headline-md text-headline-md font-bold text-on-tertiary-container break-words leading-tight"><?= htmlspecialchars($a->nama); ?></h2>
+                            <div class="flex flex-wrap items-center gap-md mt-xs font-body-md text-body-md text-on-tertiary-container/80">
+                                <span class="inline-flex items-center gap-xs"><span class="material-symbols-outlined" style="font-size:18px;">schedule</span><?= dash_acara_tgl($a->tgl_mulai); ?></span>
+                                <?php if (!empty($a->lokasi)): ?>
+                                    <span class="inline-flex items-center gap-xs"><span class="material-symbols-outlined" style="font-size:18px;">location_on</span><?= htmlspecialchars($a->lokasi); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <?php if (!empty($a->batas_rsvp) && $a->batas_rsvp !== '0000-00-00 00:00:00'): ?>
+                                <div class="inline-flex items-center gap-xs mt-xs font-label-md text-label-md text-error">
+                                    <span class="material-symbols-outlined" style="font-size:18px;">hourglass_top</span>Batas konfirmasi: <?= dash_acara_tgl($a->batas_rsvp); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <a href="<?= site_url('acara/detail/' . $a->kode); ?>"
+                       class="inline-flex items-center justify-center gap-xs shrink-0 rounded-lg px-lg py-sm font-label-md text-label-md transition-all <?= $sudah ? 'border border-tertiary text-tertiary hover:!bg-tertiary hover:!text-on-tertiary' : 'bg-tertiary text-on-tertiary hover:!bg-[#15803d] hover:!text-white'; ?>">
+                        <span class="material-symbols-outlined" style="font-size:20px;"><?= $sudah ? 'task_alt' : 'check_circle'; ?></span><?= $sudah ? 'Kehadiran Terkonfirmasi' : 'Konfirmasi Kehadiran'; ?>
+                    </a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
         <a href="<?= site_url('bayar/invoice/bayar?id_unit=' . $this->session->id_unit); ?>" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hover:shadow-md transition-all">
