@@ -314,7 +314,18 @@ class Acara extends CI_Controller
 		$data['page']    = 'acara/voting';
 		$data['acara']   = $acara;
 		$data['votings'] = $votings;
+		$data['sudah_rsvp'] = $this->_sudah_rsvp($acara->id_acara, $id_bast);
 		$this->load->view('home', $data);
+	}
+
+	/**
+	 * Unit wajib mengonfirmasi kehadiran (RSVP) dulu sebelum boleh memilih —
+	 * pilihan apa pun (hadir/tidak/diwakilkan) dianggap sudah memutuskan.
+	 */
+	private function _sudah_rsvp($id_acara, $id_bast)
+	{
+		return $this->db->where('id_acara', $id_acara)->where('id_bast', $id_bast)
+			->where('hapus', 0)->count_all_results('acara_peserta') > 0;
 	}
 
 	/**
@@ -328,6 +339,12 @@ class Acara extends CI_Controller
 		if (!$v) {
 			$this->pesan->pesan_danger('Voting tidak ditemukan.');
 			redirect('acara');
+			return;
+		}
+		// Gate RSVP juga di sisi server, bukan cuma menyembunyikan form di view.
+		if (!$this->_sudah_rsvp($v->id_acara, $id_bast)) {
+			$this->pesan->pesan_warning('Konfirmasi kehadiran Anda dulu sebelum memberikan suara.');
+			redirect('acara/detail/' . $this->_acara_kode($v->id_acara));
 			return;
 		}
 		if (!$this->_voting_buka($v)) {
