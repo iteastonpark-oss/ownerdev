@@ -25,7 +25,9 @@ $this->dropdown_model = new Dropdown_Model();
 
 require_once 'layout/header.php';
 require_once 'layout/notifikasi_jquery.php';
-require_once 'layout/loader.php';
+// loader.php sengaja tidak dipakai: spinner-nya fixed di tengah layar & baru
+// disembunyikan saat $(document).ready (~3 dtk karena script berat di header),
+// sehingga menutupi form OTP. home.php juga sudah tidak memuatnya.
 
 
 $sidebar = "layout/sidebar";
