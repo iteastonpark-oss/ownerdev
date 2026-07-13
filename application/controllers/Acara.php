@@ -85,7 +85,7 @@ class Acara extends CI_Controller
 		$data['peserta'] = $peserta;
 		$data['bisa_rsvp'] = $this->_bisa_rsvp($acara);
 		$data['ada_voting'] = $this->db->where('id_acara', $acara->id_acara)->where('hapus', 0)
-			->where_in('status', array(1, 2))->count_all_results('voting');
+			->where_in('status', array(1, 2))->count_all_results('acara_voting');
 		$this->load->view('home', $data);
 	}
 
@@ -293,14 +293,14 @@ class Acara extends CI_Controller
 			->where_in('status', array(1, 2))->get()->row();
 		if (!$acara) show_404();
 
-		$votings = $this->db->from('voting')->where('id_acara', $acara->id_acara)
+		$votings = $this->db->from('acara_voting')->where('id_acara', $acara->id_acara)
 			->where('hapus', 0)->where_in('status', array(1, 2))
 			->order_by('id_voting', 'ASC')->get()->result();
 
 		foreach ($votings as $v) {
-			$v->opsi = $this->db->from('voting_opsi')->where('id_voting', $v->id_voting)
+			$v->opsi = $this->db->from('acara_voting_opsi')->where('id_voting', $v->id_voting)
 				->where('hapus', 0)->order_by('urutan', 'ASC')->get()->result();
-			$suara = $this->db->select('id_opsi')->from('voting_suara')
+			$suara = $this->db->select('id_opsi')->from('acara_voting_suara')
 				->where('id_voting', $v->id_voting)->where('id_bast', $id_bast)
 				->where('hapus', 0)->get()->result();
 			$v->pilihan = array();
@@ -323,7 +323,7 @@ class Acara extends CI_Controller
 	{
 		$id_bast = $this->session->id_bast;
 		$id_voting = (int) $this->input->post('id_voting');
-		$v = $this->db->from('voting')->where('id_voting', $id_voting)->where('hapus', 0)->get()->row();
+		$v = $this->db->from('acara_voting')->where('id_voting', $id_voting)->where('hapus', 0)->get()->row();
 		if (!$v) {
 			$this->pesan->pesan_danger('Voting tidak ditemukan.');
 			redirect('acara');
@@ -335,7 +335,7 @@ class Acara extends CI_Controller
 			return;
 		}
 		$sudah = $this->db->where(array('id_voting' => $id_voting, 'id_bast' => $id_bast, 'hapus' => 0))
-			->count_all_results('voting_suara');
+			->count_all_results('acara_voting_suara');
 		if ($sudah > 0) {
 			$this->pesan->pesan_warning('Anda sudah memberikan suara pada voting ini.');
 			redirect('acara/voting/' . $this->_acara_kode($v->id_acara));
@@ -357,9 +357,9 @@ class Acara extends CI_Controller
 		$n = 0;
 		foreach ($opsi as $oid) {
 			$valid = $this->db->where(array('id_opsi' => $oid, 'id_voting' => $id_voting, 'hapus' => 0))
-				->count_all_results('voting_opsi');
+				->count_all_results('acara_voting_opsi');
 			if ($valid > 0) {
-				$this->db->insert('voting_suara', array(
+				$this->db->insert('acara_voting_suara', array(
 					'id_voting' => $id_voting, 'id_opsi' => $oid, 'id_bast' => $id_bast,
 					'ip' => $ip, 'browser' => $browser, 'tm_pilih' => date('Y-m-d H:i:s'),
 				));
@@ -376,17 +376,17 @@ class Acara extends CI_Controller
 	 */
 	public function voting_hasil_ajax($id_voting)
 	{
-		$v = $this->db->select('tampil_hasil')->from('voting')
+		$v = $this->db->select('tampil_hasil')->from('acara_voting')
 			->where('id_voting', $id_voting)->where('hapus', 0)->get()->row();
 		if (!$v || (int) $v->tampil_hasil !== 1) {
 			$this->_json(array('status' => false, 'hidden' => true));
 			return;
 		}
 		$rows = $this->db->select('o.teks_opsi')->select('IFNULL(c.jml,0) as jml', false)
-			->from('voting_opsi o')
-			->join('(SELECT id_opsi, COUNT(1) jml FROM voting_suara WHERE id_voting=' . (int) $id_voting . ' AND hapus=0 GROUP BY id_opsi) c', 'c.id_opsi = o.id_opsi', 'left')
+			->from('acara_voting_opsi o')
+			->join('(SELECT id_opsi, COUNT(1) jml FROM acara_voting_suara WHERE id_voting=' . (int) $id_voting . ' AND hapus=0 GROUP BY id_opsi) c', 'c.id_opsi = o.id_opsi', 'left')
 			->where('o.id_voting', $id_voting)->where('o.hapus', 0)->order_by('o.urutan', 'ASC')->get()->result();
-		$pemilih = $this->db->select('COUNT(DISTINCT id_bast) t', false)->from('voting_suara')
+		$pemilih = $this->db->select('COUNT(DISTINCT id_bast) t', false)->from('acara_voting_suara')
 			->where('id_voting', $id_voting)->where('hapus', 0)->get()->row();
 		$this->_json(array('status' => true, 'pemilih' => (int) ($pemilih ? $pemilih->t : 0), 'opsi' => $rows));
 	}
