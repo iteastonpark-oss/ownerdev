@@ -31,7 +31,7 @@
 				<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface"><?= htmlspecialchars($v->pertanyaan); ?></h2>
 			</div>
 			<?php if (!$v->buka): ?>
-				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#e6e8ea;color:#4c4637">Ditutup</span>
+				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#e6e8ea;color:#4c4637"><?= htmlspecialchars($v->label_tutup); ?></span>
 			<?php elseif ($v->sudah): ?>
 				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#dcfce7;color:#166534">Sudah Memilih</span>
 			<?php endif; ?>
@@ -68,8 +68,16 @@
 					<span class="material-symbols-outlined" style="font-size:20px;">info</span>
 					<span class="font-body-md text-body-md">
 						<?php if ($v->sudah): ?>Anda sudah memberikan suara. Hasil belum dipublikasikan.
-						<?php else: ?>Voting ini sudah ditutup.<?php endif; ?>
+						<?php else: ?><?= htmlspecialchars($v->alasan_tutup); ?><?php endif; ?>
 					</span>
+				</div>
+			<?php endif; ?>
+
+			<?php // hasil tetap tampil, tapi jelaskan kenapa tak ada pilihan yang bisa dikirim ?>
+			<?php if (!$v->buka && !$v->sudah && $show_hasil): ?>
+				<div class="flex items-start gap-sm rounded-lg bg-surface-container p-md mb-md text-on-surface-variant">
+					<span class="material-symbols-outlined" style="font-size:20px;">info</span>
+					<span class="font-body-md text-body-md"><?= htmlspecialchars($v->alasan_tutup); ?> Anda tidak dapat memberikan suara.</span>
 				</div>
 			<?php endif; ?>
 
