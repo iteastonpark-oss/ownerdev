@@ -20,8 +20,25 @@
 	</div>
 <?php endif; ?>
 
+<?php if (!empty($votings) && empty($sudah_rsvp)): ?>
+	<div class="bg-tertiary-container rounded-xl border border-outline-variant shadow-sm p-lg mb-lg">
+		<div class="flex items-start gap-sm">
+			<span class="material-symbols-outlined text-on-tertiary-container">how_to_reg</span>
+			<div class="min-w-0">
+				<p class="font-label-lg text-label-lg font-semibold text-on-tertiary-container">Konfirmasi kehadiran Anda dulu</p>
+				<p class="font-body-md text-body-md text-on-tertiary-container mt-xs">Voting baru dapat dipilih setelah unit Anda memutuskan kehadiran pada acara ini.</p>
+				<a href="<?= site_url('acara/detail/' . $acara->kode); ?>"
+				   class="inline-flex items-center gap-xs mt-md rounded-full bg-tertiary px-lg py-sm font-label-lg text-label-lg font-semibold text-on-tertiary hover:!bg-[#15803d] hover:!text-white">
+					<span class="material-symbols-outlined" style="font-size:18px;">event_available</span> Konfirmasi Kehadiran
+				</a>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
 <?php foreach ($votings as $v):
-	$show_form  = $v->buka && !$v->sudah;
+	// unit yang belum RSVP tidak boleh memilih (gate juga ditegakkan di Acara::vote)
+	$show_form  = !empty($sudah_rsvp) && $v->buka && !$v->sudah;
 	$show_hasil = ((int) $v->tampil_hasil === 1) && ($v->sudah || !$v->buka);
 ?>
 	<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm mb-lg">
@@ -32,6 +49,8 @@
 			</div>
 			<?php if (!$v->buka): ?>
 				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#e6e8ea;color:#4c4637"><?= htmlspecialchars($v->label_tutup); ?></span>
+			<?php elseif (empty($sudah_rsvp)): ?>
+				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#fef3c7;color:#92400e">Belum RSVP</span>
 			<?php elseif ($v->sudah): ?>
 				<span class="shrink-0 inline-flex items-center px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold" style="background:#dcfce7;color:#166534">Sudah Memilih</span>
 			<?php endif; ?>
@@ -68,6 +87,7 @@
 					<span class="material-symbols-outlined" style="font-size:20px;">info</span>
 					<span class="font-body-md text-body-md">
 						<?php if ($v->sudah): ?>Anda sudah memberikan suara. Hasil belum dipublikasikan.
+						<?php elseif ($v->buka && empty($sudah_rsvp)): ?>Konfirmasi kehadiran Anda dulu untuk dapat memberikan suara.
 						<?php else: ?><?= htmlspecialchars($v->alasan_tutup); ?><?php endif; ?>
 					</span>
 				</div>
