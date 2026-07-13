@@ -307,6 +307,7 @@ class Acara extends CI_Controller
 			foreach ($suara as $s) $v->pilihan[] = $s->id_opsi;
 			$v->sudah = count($v->pilihan) > 0;
 			$v->buka  = $this->_voting_buka($v);
+			list($v->label_tutup, $v->alasan_tutup) = $this->_voting_alasan_tutup($v);
 		}
 
 		$data['judul']   = 'Voting: ' . $acara->nama;
@@ -398,6 +399,29 @@ class Acara extends CI_Controller
 		if (!empty($v->waktu_buka) && $v->waktu_buka !== '0000-00-00 00:00:00' && strtotime($v->waktu_buka) > $now) return false;
 		if (!empty($v->waktu_habis) && $v->waktu_habis !== '0000-00-00 00:00:00' && strtotime($v->waktu_habis) < $now) return false;
 		return true;
+	}
+
+	/**
+	 * Alasan voting tak bisa dipilih — supaya penghuni tidak cuma melihat "Ditutup"
+	 * tanpa keterangan (mis. waktu buka masih di depan, atau waktu habis sudah lewat).
+	 * Mengembalikan array(label singkat utk badge, keterangan lengkap).
+	 */
+	private function _voting_alasan_tutup($v)
+	{
+		$now = time();
+		$ada = function ($t) { return !empty($t) && $t !== '0000-00-00 00:00:00'; };
+		$fmt = function ($t) { return date('d M Y H:i', strtotime($t)); };
+
+		if ((int) $v->status !== 1) {
+			return array('Ditutup', 'Voting ini sudah ditutup oleh pengurus.');
+		}
+		if ($ada($v->waktu_buka) && strtotime($v->waktu_buka) > $now) {
+			return array('Belum Dibuka', 'Voting dibuka pada ' . $fmt($v->waktu_buka) . '.');
+		}
+		if ($ada($v->waktu_habis) && strtotime($v->waktu_habis) < $now) {
+			return array('Berakhir', 'Waktu voting berakhir pada ' . $fmt($v->waktu_habis) . '.');
+		}
+		return array('Ditutup', 'Voting ini sudah ditutup.');
 	}
 
 	private function _acara_kode($id_acara)
