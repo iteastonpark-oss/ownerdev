@@ -95,8 +95,14 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 		<?php if (!$bisa_rsvp): ?>
 			<div class="flex items-start gap-sm rounded-lg bg-surface-container p-md text-on-surface-variant mb-md">
-				<span class="material-symbols-outlined" style="font-size:20px;">info</span>
-				<span class="font-body-md text-body-md">Konfirmasi kehadiran untuk acara ini <strong>sudah ditutup</strong>.</span>
+				<span class="material-symbols-outlined" style="font-size:20px;"><?= !empty($sudah_checkin) ? 'task_alt' : 'info'; ?></span>
+				<span class="font-body-md text-body-md">
+					<?php if (!empty($sudah_checkin)): ?>
+						Kehadiran Anda <strong>sudah tercatat (check-in)</strong>. Perubahan hanya dapat dilakukan oleh pengurus.
+					<?php else: ?>
+						Konfirmasi kehadiran untuk acara ini <strong>sudah ditutup</strong>.
+					<?php endif; ?>
+				</span>
 			</div>
 			<?php if ($peserta): ?>
 				<p class="font-body-md text-body-md text-on-surface">Kehadiran Anda:

@@ -83,7 +83,8 @@ class Acara extends CI_Controller
 		$data['page']    = 'acara/detail';
 		$data['acara']   = $acara;
 		$data['peserta'] = $peserta;
-		$data['bisa_rsvp'] = $this->_bisa_rsvp($acara);
+		$data['bisa_rsvp'] = $this->_bisa_rsvp($acara) && !$this->_sudah_checkin($peserta);
+		$data['sudah_checkin'] = $this->_sudah_checkin($peserta);
 		$data['ada_voting'] = $this->db->where('id_acara', $acara->id_acara)->where('hapus', 0)
 			->where_in('status', array(1, 2))->count_all_results('acara_voting');
 		$this->load->view('home', $data);
@@ -201,6 +202,14 @@ class Acara extends CI_Controller
 			->where('hapus', 0)
 			->get()->row();
 
+		// Sudah check-in -> terkunci. Ditegakkan di server, bukan cuma disembunyikan
+		// di view, supaya tidak bisa dilewati dengan submit POST langsung.
+		if ($this->_sudah_checkin($peserta)) {
+			$this->pesan->pesan_warning('Kehadiran Anda sudah tercatat (check-in). Perubahan hanya dapat dilakukan oleh pengurus.');
+			redirect('acara/detail/' . $acara->kode);
+			return;
+		}
+
 		$data = array(
 			'id_acara'   => $id_acara,
 			'kode'       => $acara->kode,
@@ -259,10 +268,11 @@ class Acara extends CI_Controller
 		}
 
 		// QR token: untuk yang akan hadir fisik (hadir/diwakilkan). 'tidak' -> null.
+		// checkin_status/checkin_time TIDAK PERNAH disentuh di sini — peserta yang
+		// sudah check-in sudah ditolak di atas, dan data check-in adalah catatan
+		// petugas, bukan milik unit.
 		if ($kehadiran === 'tidak') {
 			$data['qr_token'] = null;
-			$data['checkin_status'] = 0;
-			$data['checkin_time'] = null;
 		} else {
 			$data['qr_token'] = ($peserta && !empty($peserta->qr_token))
 				? $peserta->qr_token
@@ -457,6 +467,16 @@ class Acara extends CI_Controller
 	/**
 	 * Boleh RSVP bila acara publish (status=1) & belum lewat batas_rsvp.
 	 */
+	/**
+	 * Peserta yang SUDAH check-in tidak boleh lagi mengubah RSVP-nya sendiri —
+	 * mengubah jadi "tidak" akan menghapus bukti kehadiran & QR token yang sudah
+	 * dipakai petugas. Perubahan setelah check-in hanya lewat admin (bmsdev).
+	 */
+	private function _sudah_checkin($peserta)
+	{
+		return $peserta && (int) $peserta->checkin_status === 1;
+	}
+
 	private function _bisa_rsvp($acara)
 	{
 		if ((int) $acara->status !== 1) return false;
