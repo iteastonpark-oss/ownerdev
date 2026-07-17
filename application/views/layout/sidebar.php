@@ -34,8 +34,16 @@
             'tiket'   => ['icon' => 'support_agent', 'label' => 'Request'],
             'meter'   => ['icon' => 'water',         'label' => 'Utility'],
             'pbb'     => ['icon' => 'description',   'label' => 'PBB'],
+            'acara'   => ['icon' => 'event',         'label' => 'Acara'],
             'blog'    => ['icon' => 'shield',        'label' => 'P3SRS'],
         ];
+
+        // Badge jumlah acara aktif (publish) untuk menu Acara
+        $acara_aktif = 0;
+        if ($this->session->login) {
+            $acara_aktif = (int) $this->db->where('hapus', 0)->where('status', 1)->count_all_results('acara');
+        }
+        $menu_badge = ['acara' => $acara_aktif];
         ?>
         <div class="flex-1 overflow-y-auto p-md">
             <ul class="flex flex-col gap-sm">
@@ -45,6 +53,9 @@
                        href="<?= site_url($key ?: '') ?>">
                         <span class="material-symbols-outlined"><?= $menu['icon'] ?></span>
                         <span class="font-label-md text-label-md font-medium"><?= $menu['label'] ?></span>
+                        <?php if (!empty($menu_badge[$key])): ?>
+                            <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-xs rounded-full bg-error text-white font-label-sm text-label-sm font-bold"><?= $menu_badge[$key]; ?></span>
+                        <?php endif; ?>
                     </a>
                 </li>
                 <?php endforeach; ?>
