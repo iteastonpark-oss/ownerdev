@@ -3,8 +3,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Acara (Owner Portal) — undangan acara/RUA untuk penghuni.
- * Penghuni melihat undangan, menyatakan kehadiran (hadir online/offline, tidak,
- * atau diwakilkan + upload surat kuasa & KTP wakil). 1 RSVP per unit (id_bast).
+ * Penghuni melihat undangan, menyatakan kehadiran: hadir (online/offline), tidak,
+ * dikuasakan (upload surat kuasa + KTP wakil + surat izin huni), atau diwakilkan
+ * keluarga (upload KK + KTP wakil). 1 RSVP per unit (id_bast).
  * Ref rencana: docs/82_perencanaan_acara_voting.md (T2).
  */
 class Acara extends CI_Controller
@@ -189,7 +190,7 @@ class Acara extends CI_Controller
 		}
 
 		$kehadiran = $this->input->post('kehadiran');
-		if (!in_array($kehadiran, array('hadir', 'tidak', 'diwakilkan'), true)) {
+		if (!in_array($kehadiran, array('hadir', 'tidak', 'dikuasakan', 'diwakilkan'), true)) {
 			$this->pesan->pesan_warning('Silakan pilih status kehadiran.');
 			redirect('acara/detail/' . $acara->kode);
 			return;
@@ -230,8 +231,8 @@ class Acara extends CI_Controller
 			$data['mode'] = $mode;
 		}
 
-		if ($kehadiran === 'diwakilkan') {
-			$nama_wakil = trim((string) $this->input->post('nama_wakil'));
+		if ($kehadiran === 'dikuasakan') {
+			$nama_wakil = trim((string) $this->input->post('nama_wakil_kuasa'));
 			if ($nama_wakil === '') {
 				$this->pesan->pesan_warning('Nama penerima kuasa wajib diisi.');
 				redirect('acara/detail/' . $acara->kode);
@@ -239,35 +240,68 @@ class Acara extends CI_Controller
 			}
 			$data['nama_wakil'] = $nama_wakil;
 
-			// Surat kuasa & KTP wakil: wajib ada (pakai lama bila tidak upload baru).
+			// Surat kuasa, KTP wakil & surat izin huni: wajib ada (pakai lama bila tidak upload baru).
 			$sk = $this->_simpan_file('surat_kuasa', $acara->kode, 'SK', $id_bast,
 				($peserta ? $peserta->surat_kuasa : null));
-			if ($sk['error']) {
-				$this->pesan->pesan_danger($sk['error']);
-				redirect('acara/detail/' . $acara->kode);
-				return;
-			}
 			$ktp = $this->_simpan_file('ktp_wakil', $acara->kode, 'KTP', $id_bast,
 				($peserta ? $peserta->ktp_wakil : null));
-			if ($ktp['error']) {
-				$this->pesan->pesan_danger($ktp['error']);
+			$sih = $this->_simpan_file('surat_izin_huni', $acara->kode, 'SIH', $id_bast,
+				($peserta ? $peserta->surat_izin_huni : null));
+			foreach (array($sk, $ktp, $sih) as $f) {
+				if ($f['error']) {
+					$this->pesan->pesan_danger($f['error']);
+					redirect('acara/detail/' . $acara->kode);
+					return;
+				}
+			}
+			if (!$sk['path'] || !$ktp['path'] || !$sih['path']) {
+				$this->pesan->pesan_warning('Surat kuasa, foto KTP wakil, dan surat izin huni wajib diunggah.');
 				redirect('acara/detail/' . $acara->kode);
 				return;
 			}
-			if (!$sk['path'] || !$ktp['path']) {
-				$this->pesan->pesan_warning('Surat kuasa dan foto KTP wakil wajib diunggah.');
+			$data['surat_kuasa']      = $sk['path'];
+			$data['ktp_wakil']        = $ktp['path'];
+			$data['surat_izin_huni']  = $sih['path'];
+			$data['kartu_keluarga']   = null;
+		} elseif ($kehadiran === 'diwakilkan') {
+			$nama_wakil = trim((string) $this->input->post('nama_wakil_keluarga'));
+			if ($nama_wakil === '') {
+				$this->pesan->pesan_warning('Nama anggota keluarga wajib diisi.');
 				redirect('acara/detail/' . $acara->kode);
 				return;
 			}
-			$data['surat_kuasa'] = $sk['path'];
-			$data['ktp_wakil']   = $ktp['path'];
+			$data['nama_wakil'] = $nama_wakil;
+
+			// KK & KTP wakil: wajib ada (pakai lama bila tidak upload baru).
+			$kk = $this->_simpan_file('kartu_keluarga', $acara->kode, 'KK', $id_bast,
+				($peserta ? $peserta->kartu_keluarga : null));
+			$ktp = $this->_simpan_file('ktp_wakil_keluarga', $acara->kode, 'KTP', $id_bast,
+				($peserta ? $peserta->ktp_wakil : null));
+			foreach (array($kk, $ktp) as $f) {
+				if ($f['error']) {
+					$this->pesan->pesan_danger($f['error']);
+					redirect('acara/detail/' . $acara->kode);
+					return;
+				}
+			}
+			if (!$kk['path'] || !$ktp['path']) {
+				$this->pesan->pesan_warning('Kartu keluarga dan foto KTP anggota keluarga wajib diunggah.');
+				redirect('acara/detail/' . $acara->kode);
+				return;
+			}
+			$data['kartu_keluarga']  = $kk['path'];
+			$data['ktp_wakil']       = $ktp['path'];
+			$data['surat_kuasa']     = null;
+			$data['surat_izin_huni'] = null;
 		} else {
-			// bukan diwakilkan -> kosongkan file kuasa
-			$data['surat_kuasa'] = null;
-			$data['ktp_wakil']   = null;
+			// hadir/tidak -> kosongkan semua berkas wakil
+			$data['surat_kuasa']     = null;
+			$data['ktp_wakil']       = null;
+			$data['surat_izin_huni'] = null;
+			$data['kartu_keluarga']  = null;
 		}
 
-		// QR token: untuk yang akan hadir fisik (hadir/diwakilkan). 'tidak' -> null.
+		// QR token: untuk yang akan hadir fisik (hadir/dikuasakan/diwakilkan). 'tidak' -> null.
 		// checkin_status/checkin_time TIDAK PERNAH disentuh di sini — peserta yang
 		// sudah check-in sudah ditolak di atas, dan data check-in adalah catatan
 		// petugas, bukan milik unit.
