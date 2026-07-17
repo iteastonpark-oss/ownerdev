@@ -39,7 +39,11 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span><strong class="text-on-surface">Mulai:</strong> <?= acara_tgl($acara->tgl_mulai); ?></div>
 			<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span><strong class="text-on-surface">Selesai:</strong> <?= acara_tgl($acara->tgl_selesai); ?></div>
 			<?php if (!empty($acara->lokasi)): ?>
-				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span><strong class="text-on-surface">Lokasi:</strong> <?= htmlspecialchars($acara->lokasi); ?></div>
+				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span><strong class="text-on-surface">Lokasi:</strong> <?= htmlspecialchars($acara->lokasi); ?>
+					<?php if (!empty($acara->link_maps)): ?>
+						<a href="<?= htmlspecialchars($acara->link_maps); ?>" target="_blank" rel="noopener" class="text-primary hover:opacity-80">(Buka Maps)</a>
+					<?php endif; ?>
+				</div>
 			<?php endif; ?>
 			<?php if (!empty($acara->link_online)): ?>
 				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">videocam</span><strong class="text-on-surface">Online:</strong>
