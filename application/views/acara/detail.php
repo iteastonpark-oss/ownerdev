@@ -69,7 +69,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 <?php endif; ?>
 
 <!-- QR Kehadiran -->
-<?php if ($peserta && !empty($peserta->qr_token) && $keh !== 'tidak'): ?>
+<?php if ($peserta && !empty($peserta->qr_token) && $keh !== 'online'): ?>
 	<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm mb-lg">
 		<div class="flex items-center gap-sm px-lg py-md border-b border-outline-variant">
 			<span class="material-symbols-outlined text-primary">qr_code_2</span>
@@ -114,10 +114,11 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<?php if ($peserta): ?>
 				<p class="font-body-md text-body-md text-on-surface">Kehadiran Anda:
 					<strong>
-						<?php if ($keh === 'hadir'): ?>Hadir<?= $mode ? ' (' . ucfirst($mode) . ')' : ''; ?>
-						<?php elseif ($keh === 'dikuasakan'): ?>Dikuasakan (<?= htmlspecialchars($namaW); ?>)
-						<?php elseif ($keh === 'diwakilkan'): ?>Diwakilkan - Keluarga (<?= htmlspecialchars($namaW); ?>)
-						<?php else: ?>Tidak Hadir<?php endif; ?>
+						<?php if ($keh === 'online'): ?>Online
+						<?php elseif ($keh === 'pemilik'): ?>Offline - Pemilik
+						<?php elseif ($keh === 'dikuasakan'): ?>Offline - Dikuasakan (<?= htmlspecialchars($namaW); ?>)
+						<?php elseif ($keh === 'diwakilkan'): ?>Offline - Diwakilkan Keluarga (<?= htmlspecialchars($namaW); ?>)
+						<?php else: ?>-<?php endif; ?>
 					</strong>
 				</p>
 			<?php else: ?>
@@ -136,33 +137,34 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<form action="<?= site_url('acara/rsvp'); ?>" method="post" enctype="multipart/form-data" class="flex flex-col gap-md">
 				<input type="hidden" name="id_acara" value="<?= (int) $acara->id_acara; ?>">
 
+				<?php
+				$cara_awal = ($keh === 'online') ? 'online' : ($keh ? 'offline' : '');
+				$offline_tipe_awal = in_array($keh, ['pemilik', 'dikuasakan', 'diwakilkan'], true) ? $keh : '';
+				?>
 				<div>
-					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Status Kehadiran</label>
+					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Cara Hadir</label>
 					<div class="flex flex-col gap-sm">
-						<?php
-						$opsi = ['hadir' => 'Hadir', 'tidak' => 'Tidak Hadir', 'dikuasakan' => 'Dikuasakan', 'diwakilkan' => 'Diwakilkan (Keluarga)'];
-						foreach ($opsi as $val => $lbl):
-						?>
+						<?php $cara_opsi = ['online' => 'Online', 'offline' => 'Offline (datang ke lokasi)']; ?>
+						<?php foreach ($cara_opsi as $val => $lbl): ?>
 							<label class="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm cursor-pointer hover:bg-surface-container">
-								<input type="radio" name="kehadiran" value="<?= $val; ?>" class="keh-radio text-primary" <?= $keh === $val ? 'checked' : ''; ?>>
+								<input type="radio" name="cara" value="<?= $val; ?>" class="cara-radio text-primary" <?= $cara_awal === $val ? 'checked' : ''; ?>>
 								<span class="font-body-md text-body-md text-on-surface"><?= $lbl; ?></span>
 							</label>
 						<?php endforeach; ?>
 					</div>
 				</div>
 
-				<!-- Mode (Hadir) -->
-				<div id="blok-mode" class="rounded-lg border border-outline-variant p-md" style="display:none;">
-					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Cara Hadir</label>
+				<!-- Status Kehadiran (hanya untuk Offline) -->
+				<div id="blok-offline-tipe" class="rounded-lg border border-outline-variant p-md" style="display:none;">
+					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Status Kehadiran</label>
 					<div class="flex flex-col gap-sm">
-						<label class="flex items-center gap-sm cursor-pointer">
-							<input type="radio" name="mode" value="offline" class="text-primary" <?= $mode === 'offline' ? 'checked' : ''; ?>>
-							<span class="font-body-md text-body-md text-on-surface">Offline (datang ke lokasi)</span>
-						</label>
-						<label class="flex items-center gap-sm cursor-pointer">
-							<input type="radio" name="mode" value="online" class="text-primary" <?= $mode === 'online' ? 'checked' : ''; ?>>
-							<span class="font-body-md text-body-md text-on-surface">Online</span>
-						</label>
+						<?php $tipe_opsi = ['pemilik' => 'Pemilik (datang sendiri)', 'dikuasakan' => 'Dikuasakan', 'diwakilkan' => 'Diwakilkan (Keluarga)']; ?>
+						<?php foreach ($tipe_opsi as $val => $lbl): ?>
+							<label class="flex items-center gap-sm cursor-pointer">
+								<input type="radio" name="offline_tipe" value="<?= $val; ?>" class="tipe-radio text-primary" <?= $offline_tipe_awal === $val ? 'checked' : ''; ?>>
+								<span class="font-body-md text-body-md text-on-surface"><?= $lbl; ?></span>
+							</label>
+						<?php endforeach; ?>
 					</div>
 				</div>
 
@@ -232,13 +234,16 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<script>
 				(function () {
 					function refresh() {
-						var el = document.querySelector('.keh-radio:checked');
-						var val = el ? el.value : '';
-						document.getElementById('blok-mode').style.display     = (val === 'hadir') ? 'block' : 'none';
-						document.getElementById('blok-kuasa').style.display    = (val === 'dikuasakan') ? 'block' : 'none';
-						document.getElementById('blok-keluarga').style.display = (val === 'diwakilkan') ? 'block' : 'none';
+						var cara = document.querySelector('.cara-radio:checked');
+						var caraVal = cara ? cara.value : '';
+						var tipe = document.querySelector('.tipe-radio:checked');
+						var tipeVal = (caraVal === 'offline' && tipe) ? tipe.value : '';
+
+						document.getElementById('blok-offline-tipe').style.display = (caraVal === 'offline') ? 'block' : 'none';
+						document.getElementById('blok-kuasa').style.display    = (tipeVal === 'dikuasakan') ? 'block' : 'none';
+						document.getElementById('blok-keluarga').style.display = (tipeVal === 'diwakilkan') ? 'block' : 'none';
 					}
-					document.querySelectorAll('.keh-radio').forEach(function (r) { r.addEventListener('change', refresh); });
+					document.querySelectorAll('.cara-radio, .tipe-radio').forEach(function (r) { r.addEventListener('change', refresh); });
 					refresh();
 				})();
 			</script>
