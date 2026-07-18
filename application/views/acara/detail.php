@@ -80,8 +80,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 				 class="w-48 h-48 rounded-lg border border-outline-variant p-sm bg-white">
 			<p class="font-body-md text-body-md text-on-surface-variant mt-md max-w-md">
 				Tunjukkan QR ini saat check-in di lokasi acara. Petugas akan memindainya untuk verifikasi kehadiran<?php
-					if ($keh === 'dikuasakan') echo ' (bawa juga surat kuasa &amp; KTP asli penerima kuasa)';
-					elseif ($keh === 'diwakilkan') echo ' (bawa juga KK &amp; KTP asli anggota keluarga)';
+					if ($keh === 'dikuasakan') echo ' (bawa juga surat kuasa, surat izin huni &amp; KTP asli penerima kuasa)';
 				?>.
 			</p>
 			<a href="<?= site_url('acara/qr/' . $acara->kode . '/download'); ?>"
@@ -117,7 +116,6 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 						<?php if ($keh === 'online'): ?>Online
 						<?php elseif ($keh === 'pemilik'): ?>Offline - Pemilik
 						<?php elseif ($keh === 'dikuasakan'): ?>Offline - Dikuasakan (<?= htmlspecialchars($namaW); ?>)
-						<?php elseif ($keh === 'diwakilkan'): ?>Offline - Diwakilkan Keluarga (<?= htmlspecialchars($namaW); ?>)
 						<?php else: ?>-<?php endif; ?>
 					</strong>
 				</p>
@@ -139,7 +137,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 				<?php
 				$cara_awal = ($keh === 'online') ? 'online' : ($keh ? 'offline' : '');
-				$offline_tipe_awal = in_array($keh, ['pemilik', 'dikuasakan', 'diwakilkan'], true) ? $keh : '';
+				$offline_tipe_awal = in_array($keh, ['pemilik', 'dikuasakan'], true) ? $keh : '';
 				?>
 				<div>
 					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Cara Hadir</label>
@@ -158,7 +156,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 				<div id="blok-offline-tipe" class="rounded-lg border border-outline-variant p-md" style="display:none;">
 					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Status Kehadiran</label>
 					<div class="flex flex-col gap-sm">
-						<?php $tipe_opsi = ['pemilik' => 'Pemilik (datang sendiri)', 'dikuasakan' => 'Dikuasakan', 'diwakilkan' => 'Diwakilkan (Keluarga)']; ?>
+						<?php $tipe_opsi = ['pemilik' => 'Pemilik (datang sendiri)', 'dikuasakan' => 'Dikuasakan']; ?>
 						<?php foreach ($tipe_opsi as $val => $lbl): ?>
 							<label class="flex items-center gap-sm cursor-pointer">
 								<input type="radio" name="offline_tipe" value="<?= $val; ?>" class="tipe-radio text-primary" <?= $offline_tipe_awal === $val ? 'checked' : ''; ?>>
@@ -197,28 +195,6 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 					</div>
 				</div>
 
-				<!-- Diwakilkan (Keluarga) -->
-				<div id="blok-keluarga" class="rounded-lg border border-outline-variant p-md flex flex-col gap-md" style="display:none;">
-					<div>
-						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Nama Anggota Keluarga</label>
-						<input type="text" name="nama_wakil_keluarga" value="<?= $keh === 'diwakilkan' ? htmlspecialchars($namaW) : ''; ?>" class="<?= $inputCls; ?>">
-					</div>
-					<div>
-						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Kartu Keluarga (KK) <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
-						<input type="file" name="kartu_keluarga" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
-						<?php if ($peserta && !empty($peserta->kartu_keluarga)): ?>
-							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
-						<?php endif; ?>
-					</div>
-					<div>
-						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Foto KTP Anggota Keluarga <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
-						<input type="file" name="ktp_wakil_keluarga" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
-						<?php if ($peserta && !empty($peserta->ktp_wakil) && $keh === 'diwakilkan'): ?>
-							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
-						<?php endif; ?>
-					</div>
-				</div>
-
 				<div>
 					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Nama yang Hadir <span class="font-label-sm text-label-sm text-on-surface-variant">(opsional)</span></label>
 					<input type="text" name="nama_hadir" value="<?= htmlspecialchars($namaH); ?>" placeholder="Nama orang yang akan hadir" class="<?= $inputCls; ?>">
@@ -241,7 +217,6 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 						document.getElementById('blok-offline-tipe').style.display = (caraVal === 'offline') ? 'block' : 'none';
 						document.getElementById('blok-kuasa').style.display    = (tipeVal === 'dikuasakan') ? 'block' : 'none';
-						document.getElementById('blok-keluarga').style.display = (tipeVal === 'diwakilkan') ? 'block' : 'none';
 					}
 					document.querySelectorAll('.cara-radio, .tipe-radio').forEach(function (r) { r.addEventListener('change', refresh); });
 					refresh();
