@@ -3,8 +3,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Acara (Owner Portal) — undangan acara/RUA untuk penghuni.
- * Penghuni melihat undangan, menyatakan kehadiran (hadir online/offline, tidak,
- * atau diwakilkan + upload surat kuasa & KTP wakil). 1 RSVP per unit (id_bast).
+ * Penghuni melihat undangan, menyatakan kehadiran: hadir (online/offline), tidak,
+ * dikuasakan (upload surat kuasa + KTP wakil + surat izin huni), atau diwakilkan
+ * keluarga (upload KK + KTP wakil). 1 RSVP per unit (id_bast).
  * Ref rencana: docs/82_perencanaan_acara_voting.md (T2).
  */
 class Acara extends CI_Controller
@@ -83,7 +84,8 @@ class Acara extends CI_Controller
 		$data['page']    = 'acara/detail';
 		$data['acara']   = $acara;
 		$data['peserta'] = $peserta;
-		$data['bisa_rsvp'] = $this->_bisa_rsvp($acara);
+		$data['bisa_rsvp'] = $this->_bisa_rsvp($acara) && !$this->_sudah_checkin($peserta);
+		$data['sudah_checkin'] = $this->_sudah_checkin($peserta);
 		$data['ada_voting'] = $this->db->where('id_acara', $acara->id_acara)->where('hapus', 0)
 			->where_in('status', array(1, 2))->count_all_results('acara_voting');
 		$this->load->view('home', $data);
@@ -188,7 +190,7 @@ class Acara extends CI_Controller
 		}
 
 		$kehadiran = $this->input->post('kehadiran');
-		if (!in_array($kehadiran, array('hadir', 'tidak', 'diwakilkan'), true)) {
+		if (!in_array($kehadiran, array('hadir', 'tidak', 'dikuasakan', 'diwakilkan'), true)) {
 			$this->pesan->pesan_warning('Silakan pilih status kehadiran.');
 			redirect('acara/detail/' . $acara->kode);
 			return;
@@ -200,6 +202,14 @@ class Acara extends CI_Controller
 			->where('id_bast', $id_bast)
 			->where('hapus', 0)
 			->get()->row();
+
+		// Sudah check-in -> terkunci. Ditegakkan di server, bukan cuma disembunyikan
+		// di view, supaya tidak bisa dilewati dengan submit POST langsung.
+		if ($this->_sudah_checkin($peserta)) {
+			$this->pesan->pesan_warning('Kehadiran Anda sudah tercatat (check-in). Perubahan hanya dapat dilakukan oleh pengurus.');
+			redirect('acara/detail/' . $acara->kode);
+			return;
+		}
 
 		$data = array(
 			'id_acara'   => $id_acara,
@@ -221,8 +231,8 @@ class Acara extends CI_Controller
 			$data['mode'] = $mode;
 		}
 
-		if ($kehadiran === 'diwakilkan') {
-			$nama_wakil = trim((string) $this->input->post('nama_wakil'));
+		if ($kehadiran === 'dikuasakan') {
+			$nama_wakil = trim((string) $this->input->post('nama_wakil_kuasa'));
 			if ($nama_wakil === '') {
 				$this->pesan->pesan_warning('Nama penerima kuasa wajib diisi.');
 				redirect('acara/detail/' . $acara->kode);
@@ -230,39 +240,73 @@ class Acara extends CI_Controller
 			}
 			$data['nama_wakil'] = $nama_wakil;
 
-			// Surat kuasa & KTP wakil: wajib ada (pakai lama bila tidak upload baru).
+			// Surat kuasa, KTP wakil & surat izin huni: wajib ada (pakai lama bila tidak upload baru).
 			$sk = $this->_simpan_file('surat_kuasa', $acara->kode, 'SK', $id_bast,
 				($peserta ? $peserta->surat_kuasa : null));
-			if ($sk['error']) {
-				$this->pesan->pesan_danger($sk['error']);
-				redirect('acara/detail/' . $acara->kode);
-				return;
-			}
 			$ktp = $this->_simpan_file('ktp_wakil', $acara->kode, 'KTP', $id_bast,
 				($peserta ? $peserta->ktp_wakil : null));
-			if ($ktp['error']) {
-				$this->pesan->pesan_danger($ktp['error']);
+			$sih = $this->_simpan_file('surat_izin_huni', $acara->kode, 'SIH', $id_bast,
+				($peserta ? $peserta->surat_izin_huni : null));
+			foreach (array($sk, $ktp, $sih) as $f) {
+				if ($f['error']) {
+					$this->pesan->pesan_danger($f['error']);
+					redirect('acara/detail/' . $acara->kode);
+					return;
+				}
+			}
+			if (!$sk['path'] || !$ktp['path'] || !$sih['path']) {
+				$this->pesan->pesan_warning('Surat kuasa, foto KTP wakil, dan surat izin huni wajib diunggah.');
 				redirect('acara/detail/' . $acara->kode);
 				return;
 			}
-			if (!$sk['path'] || !$ktp['path']) {
-				$this->pesan->pesan_warning('Surat kuasa dan foto KTP wakil wajib diunggah.');
+			$data['surat_kuasa']      = $sk['path'];
+			$data['ktp_wakil']        = $ktp['path'];
+			$data['surat_izin_huni']  = $sih['path'];
+			$data['kartu_keluarga']   = null;
+		} elseif ($kehadiran === 'diwakilkan') {
+			$nama_wakil = trim((string) $this->input->post('nama_wakil_keluarga'));
+			if ($nama_wakil === '') {
+				$this->pesan->pesan_warning('Nama anggota keluarga wajib diisi.');
 				redirect('acara/detail/' . $acara->kode);
 				return;
 			}
-			$data['surat_kuasa'] = $sk['path'];
-			$data['ktp_wakil']   = $ktp['path'];
+			$data['nama_wakil'] = $nama_wakil;
+
+			// KK & KTP wakil: wajib ada (pakai lama bila tidak upload baru).
+			$kk = $this->_simpan_file('kartu_keluarga', $acara->kode, 'KK', $id_bast,
+				($peserta ? $peserta->kartu_keluarga : null));
+			$ktp = $this->_simpan_file('ktp_wakil_keluarga', $acara->kode, 'KTP', $id_bast,
+				($peserta ? $peserta->ktp_wakil : null));
+			foreach (array($kk, $ktp) as $f) {
+				if ($f['error']) {
+					$this->pesan->pesan_danger($f['error']);
+					redirect('acara/detail/' . $acara->kode);
+					return;
+				}
+			}
+			if (!$kk['path'] || !$ktp['path']) {
+				$this->pesan->pesan_warning('Kartu keluarga dan foto KTP anggota keluarga wajib diunggah.');
+				redirect('acara/detail/' . $acara->kode);
+				return;
+			}
+			$data['kartu_keluarga']  = $kk['path'];
+			$data['ktp_wakil']       = $ktp['path'];
+			$data['surat_kuasa']     = null;
+			$data['surat_izin_huni'] = null;
 		} else {
-			// bukan diwakilkan -> kosongkan file kuasa
-			$data['surat_kuasa'] = null;
-			$data['ktp_wakil']   = null;
+			// hadir/tidak -> kosongkan semua berkas wakil
+			$data['surat_kuasa']     = null;
+			$data['ktp_wakil']       = null;
+			$data['surat_izin_huni'] = null;
+			$data['kartu_keluarga']  = null;
 		}
 
-		// QR token: untuk yang akan hadir fisik (hadir/diwakilkan). 'tidak' -> null.
+		// QR token: untuk yang akan hadir fisik (hadir/dikuasakan/diwakilkan). 'tidak' -> null.
+		// checkin_status/checkin_time TIDAK PERNAH disentuh di sini — peserta yang
+		// sudah check-in sudah ditolak di atas, dan data check-in adalah catatan
+		// petugas, bukan milik unit.
 		if ($kehadiran === 'tidak') {
 			$data['qr_token'] = null;
-			$data['checkin_status'] = 0;
-			$data['checkin_time'] = null;
 		} else {
 			$data['qr_token'] = ($peserta && !empty($peserta->qr_token))
 				? $peserta->qr_token
@@ -307,13 +351,25 @@ class Acara extends CI_Controller
 			foreach ($suara as $s) $v->pilihan[] = $s->id_opsi;
 			$v->sudah = count($v->pilihan) > 0;
 			$v->buka  = $this->_voting_buka($v);
+			list($v->label_tutup, $v->alasan_tutup) = $this->_voting_alasan_tutup($v);
 		}
 
 		$data['judul']   = 'Voting: ' . $acara->nama;
 		$data['page']    = 'acara/voting';
 		$data['acara']   = $acara;
 		$data['votings'] = $votings;
+		$data['sudah_rsvp'] = $this->_sudah_rsvp($acara->id_acara, $id_bast);
 		$this->load->view('home', $data);
+	}
+
+	/**
+	 * Unit wajib mengonfirmasi kehadiran (RSVP) dulu sebelum boleh memilih —
+	 * pilihan apa pun (hadir/tidak/diwakilkan) dianggap sudah memutuskan.
+	 */
+	private function _sudah_rsvp($id_acara, $id_bast)
+	{
+		return $this->db->where('id_acara', $id_acara)->where('id_bast', $id_bast)
+			->where('hapus', 0)->count_all_results('acara_peserta') > 0;
 	}
 
 	/**
@@ -327,6 +383,12 @@ class Acara extends CI_Controller
 		if (!$v) {
 			$this->pesan->pesan_danger('Voting tidak ditemukan.');
 			redirect('acara');
+			return;
+		}
+		// Gate RSVP juga di sisi server, bukan cuma menyembunyikan form di view.
+		if (!$this->_sudah_rsvp($v->id_acara, $id_bast)) {
+			$this->pesan->pesan_warning('Konfirmasi kehadiran Anda dulu sebelum memberikan suara.');
+			redirect('acara/detail/' . $this->_acara_kode($v->id_acara));
 			return;
 		}
 		if (!$this->_voting_buka($v)) {
@@ -400,6 +462,29 @@ class Acara extends CI_Controller
 		return true;
 	}
 
+	/**
+	 * Alasan voting tak bisa dipilih — supaya penghuni tidak cuma melihat "Ditutup"
+	 * tanpa keterangan (mis. waktu buka masih di depan, atau waktu habis sudah lewat).
+	 * Mengembalikan array(label singkat utk badge, keterangan lengkap).
+	 */
+	private function _voting_alasan_tutup($v)
+	{
+		$now = time();
+		$ada = function ($t) { return !empty($t) && $t !== '0000-00-00 00:00:00'; };
+		$fmt = function ($t) { return date('d M Y H:i', strtotime($t)); };
+
+		if ((int) $v->status !== 1) {
+			return array('Ditutup', 'Voting ini sudah ditutup oleh pengurus.');
+		}
+		if ($ada($v->waktu_buka) && strtotime($v->waktu_buka) > $now) {
+			return array('Belum Dibuka', 'Voting dibuka pada ' . $fmt($v->waktu_buka) . '.');
+		}
+		if ($ada($v->waktu_habis) && strtotime($v->waktu_habis) < $now) {
+			return array('Berakhir', 'Waktu voting berakhir pada ' . $fmt($v->waktu_habis) . '.');
+		}
+		return array('Ditutup', 'Voting ini sudah ditutup.');
+	}
+
 	private function _acara_kode($id_acara)
 	{
 		$a = $this->db->select('kode')->from('acara')->where('id_acara', $id_acara)->get()->row();
@@ -416,6 +501,16 @@ class Acara extends CI_Controller
 	/**
 	 * Boleh RSVP bila acara publish (status=1) & belum lewat batas_rsvp.
 	 */
+	/**
+	 * Peserta yang SUDAH check-in tidak boleh lagi mengubah RSVP-nya sendiri —
+	 * mengubah jadi "tidak" akan menghapus bukti kehadiran & QR token yang sudah
+	 * dipakai petugas. Perubahan setelah check-in hanya lewat admin (bmsdev).
+	 */
+	private function _sudah_checkin($peserta)
+	{
+		return $peserta && (int) $peserta->checkin_status === 1;
+	}
+
 	private function _bisa_rsvp($acara)
 	{
 		if ((int) $acara->status !== 1) return false;

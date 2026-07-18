@@ -12,8 +12,10 @@ if (!function_exists('acara_badge')) {
 		} elseif ($r->kehadiran === 'hadir') {
 			$m = $r->mode ? ' (' . ucfirst($r->mode) . ')' : '';
 			$b = ['Hadir' . $m, '#dcfce7', '#166534'];
+		} elseif ($r->kehadiran === 'dikuasakan') {
+			$b = ['Dikuasakan', '#d5e0f8', '#3c475a'];
 		} elseif ($r->kehadiran === 'diwakilkan') {
-			$b = ['Diwakilkan', '#d5e0f8', '#3c475a'];
+			$b = ['Diwakilkan (Keluarga)', '#e0d5f8', '#4c3c5a'];
 		} else {
 			$b = ['Tidak Hadir', '#e6e8ea', '#4c4637'];
 		}
@@ -68,7 +70,7 @@ if (!function_exists('acara_tgl')) {
 							   class="inline-flex items-center justify-center gap-xs w-full bg-primary text-on-primary rounded-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white">
 								<span class="material-symbols-outlined" style="font-size:20px;">check_circle</span>Lihat &amp; Konfirmasi
 							</a>
-							<?php if (in_array($a->kehadiran, array('hadir', 'diwakilkan'), true)): ?>
+							<?php if (in_array($a->kehadiran, array('hadir', 'dikuasakan', 'diwakilkan'), true)): ?>
 								<a href="<?= site_url('acara/qr/' . $a->kode . '/download'); ?>"
 								   class="inline-flex items-center justify-center gap-xs w-full border border-primary text-primary rounded-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white hover:!border-[#15803d]">
 									<span class="material-symbols-outlined" style="font-size:20px;">qr_code_2</span>Unduh QR Kehadiran
