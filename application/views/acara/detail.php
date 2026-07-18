@@ -39,7 +39,11 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span><strong class="text-on-surface">Mulai:</strong> <?= acara_tgl($acara->tgl_mulai); ?></div>
 			<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span><strong class="text-on-surface">Selesai:</strong> <?= acara_tgl($acara->tgl_selesai); ?></div>
 			<?php if (!empty($acara->lokasi)): ?>
-				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span><strong class="text-on-surface">Lokasi:</strong> <?= htmlspecialchars($acara->lokasi); ?></div>
+				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span><strong class="text-on-surface">Lokasi:</strong> <?= htmlspecialchars($acara->lokasi); ?>
+					<?php if (!empty($acara->link_maps)): ?>
+						<a href="<?= htmlspecialchars($acara->link_maps); ?>" target="_blank" rel="noopener" class="text-primary hover:opacity-80">(Buka Maps)</a>
+					<?php endif; ?>
+				</div>
 			<?php endif; ?>
 			<?php if (!empty($acara->link_online)): ?>
 				<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">videocam</span><strong class="text-on-surface">Online:</strong>
@@ -75,7 +79,10 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 			<img src="<?= site_url('acara/qr/' . $acara->kode); ?>" alt="QR Kehadiran"
 				 class="w-48 h-48 rounded-lg border border-outline-variant p-sm bg-white">
 			<p class="font-body-md text-body-md text-on-surface-variant mt-md max-w-md">
-				Tunjukkan QR ini saat check-in di lokasi acara. Petugas akan memindainya untuk verifikasi kehadiran<?= $keh === 'diwakilkan' ? ' (bawa juga surat kuasa &amp; KTP asli penerima kuasa)' : ''; ?>.
+				Tunjukkan QR ini saat check-in di lokasi acara. Petugas akan memindainya untuk verifikasi kehadiran<?php
+					if ($keh === 'dikuasakan') echo ' (bawa juga surat kuasa &amp; KTP asli penerima kuasa)';
+					elseif ($keh === 'diwakilkan') echo ' (bawa juga KK &amp; KTP asli anggota keluarga)';
+				?>.
 			</p>
 			<a href="<?= site_url('acara/qr/' . $acara->kode . '/download'); ?>"
 			   class="mt-md inline-flex items-center gap-xs bg-primary text-on-primary rounded-lg px-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white">
@@ -95,14 +102,21 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 		<?php if (!$bisa_rsvp): ?>
 			<div class="flex items-start gap-sm rounded-lg bg-surface-container p-md text-on-surface-variant mb-md">
-				<span class="material-symbols-outlined" style="font-size:20px;">info</span>
-				<span class="font-body-md text-body-md">Konfirmasi kehadiran untuk acara ini <strong>sudah ditutup</strong>.</span>
+				<span class="material-symbols-outlined" style="font-size:20px;"><?= !empty($sudah_checkin) ? 'task_alt' : 'info'; ?></span>
+				<span class="font-body-md text-body-md">
+					<?php if (!empty($sudah_checkin)): ?>
+						Kehadiran Anda <strong>sudah tercatat (check-in)</strong>. Perubahan hanya dapat dilakukan oleh pengurus.
+					<?php else: ?>
+						Konfirmasi kehadiran untuk acara ini <strong>sudah ditutup</strong>.
+					<?php endif; ?>
+				</span>
 			</div>
 			<?php if ($peserta): ?>
 				<p class="font-body-md text-body-md text-on-surface">Kehadiran Anda:
 					<strong>
 						<?php if ($keh === 'hadir'): ?>Hadir<?= $mode ? ' (' . ucfirst($mode) . ')' : ''; ?>
-						<?php elseif ($keh === 'diwakilkan'): ?>Diwakilkan (<?= htmlspecialchars($namaW); ?>)
+						<?php elseif ($keh === 'dikuasakan'): ?>Dikuasakan (<?= htmlspecialchars($namaW); ?>)
+						<?php elseif ($keh === 'diwakilkan'): ?>Diwakilkan - Keluarga (<?= htmlspecialchars($namaW); ?>)
 						<?php else: ?>Tidak Hadir<?php endif; ?>
 					</strong>
 				</p>
@@ -126,7 +140,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 					<label class="block font-label-md text-label-md font-semibold text-on-surface mb-sm">Status Kehadiran</label>
 					<div class="flex flex-col gap-sm">
 						<?php
-						$opsi = ['hadir' => 'Hadir', 'tidak' => 'Tidak Hadir', 'diwakilkan' => 'Diwakilkan'];
+						$opsi = ['hadir' => 'Hadir', 'tidak' => 'Tidak Hadir', 'dikuasakan' => 'Dikuasakan', 'diwakilkan' => 'Diwakilkan (Keluarga)'];
 						foreach ($opsi as $val => $lbl):
 						?>
 							<label class="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm cursor-pointer hover:bg-surface-container">
@@ -152,11 +166,11 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 					</div>
 				</div>
 
-				<!-- Diwakilkan -->
-				<div id="blok-wakil" class="rounded-lg border border-outline-variant p-md flex flex-col gap-md" style="display:none;">
+				<!-- Dikuasakan -->
+				<div id="blok-kuasa" class="rounded-lg border border-outline-variant p-md flex flex-col gap-md" style="display:none;">
 					<div>
 						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Nama Penerima Kuasa</label>
-						<input type="text" name="nama_wakil" value="<?= htmlspecialchars($namaW); ?>" class="<?= $inputCls; ?>">
+						<input type="text" name="nama_wakil_kuasa" value="<?= $keh === 'dikuasakan' ? htmlspecialchars($namaW) : ''; ?>" class="<?= $inputCls; ?>">
 					</div>
 					<div>
 						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Surat Kuasa <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
@@ -168,7 +182,36 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 					<div>
 						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Foto KTP Penerima Kuasa <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
 						<input type="file" name="ktp_wakil" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
-						<?php if ($peserta && !empty($peserta->ktp_wakil)): ?>
+						<?php if ($peserta && !empty($peserta->ktp_wakil) && $keh === 'dikuasakan'): ?>
+							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
+						<?php endif; ?>
+					</div>
+					<div>
+						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Surat Izin Huni <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
+						<input type="file" name="surat_izin_huni" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
+						<?php if ($peserta && !empty($peserta->surat_izin_huni)): ?>
+							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<!-- Diwakilkan (Keluarga) -->
+				<div id="blok-keluarga" class="rounded-lg border border-outline-variant p-md flex flex-col gap-md" style="display:none;">
+					<div>
+						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Nama Anggota Keluarga</label>
+						<input type="text" name="nama_wakil_keluarga" value="<?= $keh === 'diwakilkan' ? htmlspecialchars($namaW) : ''; ?>" class="<?= $inputCls; ?>">
+					</div>
+					<div>
+						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Kartu Keluarga (KK) <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
+						<input type="file" name="kartu_keluarga" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
+						<?php if ($peserta && !empty($peserta->kartu_keluarga)): ?>
+							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
+						<?php endif; ?>
+					</div>
+					<div>
+						<label class="block font-label-md text-label-md font-semibold text-on-surface mb-xs">Foto KTP Anggota Keluarga <span class="font-label-sm text-label-sm text-on-surface-variant">(PDF/JPG/PNG, maks 5MB)</span></label>
+						<input type="file" name="ktp_wakil_keluarga" accept=".pdf,.jpg,.jpeg,.png" class="w-full font-body-md text-body-md text-on-surface-variant">
+						<?php if ($peserta && !empty($peserta->ktp_wakil) && $keh === 'diwakilkan'): ?>
 							<p class="flex items-center gap-xs font-label-sm text-label-sm mt-xs" style="color:#166534"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>Sudah diunggah. Kosongkan bila tidak ingin mengganti.</p>
 						<?php endif; ?>
 					</div>
@@ -191,8 +234,9 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 					function refresh() {
 						var el = document.querySelector('.keh-radio:checked');
 						var val = el ? el.value : '';
-						document.getElementById('blok-mode').style.display  = (val === 'hadir') ? 'block' : 'none';
-						document.getElementById('blok-wakil').style.display = (val === 'diwakilkan') ? 'block' : 'none';
+						document.getElementById('blok-mode').style.display     = (val === 'hadir') ? 'block' : 'none';
+						document.getElementById('blok-kuasa').style.display    = (val === 'dikuasakan') ? 'block' : 'none';
+						document.getElementById('blok-keluarga').style.display = (val === 'diwakilkan') ? 'block' : 'none';
 					}
 					document.querySelectorAll('.keh-radio').forEach(function (r) { r.addEventListener('change', refresh); });
 					refresh();
