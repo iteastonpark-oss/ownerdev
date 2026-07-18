@@ -9,15 +9,14 @@ if (!function_exists('acara_badge')) {
 		// [teks, bg, warna]
 		if (empty($r->kehadiran)) {
 			$b = ['Belum Konfirmasi', '#fef3c7', '#92400e'];
-		} elseif ($r->kehadiran === 'hadir') {
-			$m = $r->mode ? ' (' . ucfirst($r->mode) . ')' : '';
-			$b = ['Hadir' . $m, '#dcfce7', '#166534'];
+		} elseif ($r->kehadiran === 'online') {
+			$b = ['Online', '#dcfce7', '#166534'];
+		} elseif ($r->kehadiran === 'pemilik') {
+			$b = ['Offline - Pemilik', '#dcfce7', '#166534'];
 		} elseif ($r->kehadiran === 'dikuasakan') {
 			$b = ['Dikuasakan', '#d5e0f8', '#3c475a'];
-		} elseif ($r->kehadiran === 'diwakilkan') {
-			$b = ['Diwakilkan (Keluarga)', '#e0d5f8', '#4c3c5a'];
 		} else {
-			$b = ['Tidak Hadir', '#e6e8ea', '#4c4637'];
+			$b = ['-', '#e6e8ea', '#4c4637'];
 		}
 		return '<span class="inline-flex items-center shrink-0 whitespace-nowrap px-sm py-xs rounded-full font-label-sm text-label-sm font-semibold"'
 			. ' style="background:' . $b[1] . ';color:' . $b[2] . '">' . htmlspecialchars($b[0]) . '</span>';
@@ -70,7 +69,7 @@ if (!function_exists('acara_tgl')) {
 							   class="inline-flex items-center justify-center gap-xs w-full bg-primary text-on-primary rounded-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white">
 								<span class="material-symbols-outlined" style="font-size:20px;">check_circle</span>Lihat &amp; Konfirmasi
 							</a>
-							<?php if (in_array($a->kehadiran, array('hadir', 'dikuasakan', 'diwakilkan'), true)): ?>
+							<?php if (in_array($a->kehadiran, array('pemilik', 'dikuasakan'), true)): ?>
 								<a href="<?= site_url('acara/qr/' . $a->kode . '/download'); ?>"
 								   class="inline-flex items-center justify-center gap-xs w-full border border-primary text-primary rounded-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white hover:!border-[#15803d]">
 									<span class="material-symbols-outlined" style="font-size:20px;">qr_code_2</span>Unduh QR Kehadiran
