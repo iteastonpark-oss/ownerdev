@@ -3,10 +3,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Acara (Owner Portal) — undangan acara/RUA untuk penghuni.
- * Penghuni melihat undangan, menyatakan kehadiran: hadir (online/offline), tidak,
- * dikuasakan (upload surat kuasa + KTP wakil + surat izin huni), atau diwakilkan
- * keluarga (upload KK + KTP wakil). 1 RSVP per unit (id_bast).
- * Ref rencana: docs/82_perencanaan_acara_voting.md (T2).
+ * Penghuni menyatakan cara hadir: online (langsung), atau offline dengan
+ * sub-status pemilik (langsung), dikuasakan (upload surat kuasa + KTP wakil +
+ * surat izin huni), atau diwakilkan keluarga (upload KK + KTP wakil).
+ * 1 RSVP per unit (id_bast).
+ * Ref rencana: docs/82_perencanaan_acara_voting.md (T2, T9f).
  */
 class Acara extends CI_Controller
 {
@@ -136,7 +137,7 @@ class Acara extends CI_Controller
 			->where('id_acara', $acara->id_acara)
 			->where('id_bast', $id_bast)
 			->where('hapus', 0)->get()->row();
-		if (!$peserta || empty($peserta->qr_token) || $peserta->kehadiran === 'tidak') show_404();
+		if (!$peserta || empty($peserta->qr_token) || $peserta->kehadiran === 'online') show_404();
 
 		$this->load->library('ciqrcode');
 		$tmp = rtrim(sys_get_temp_dir(), '/') . '/qr_acara_' . md5($peserta->qr_token) . '.png';
@@ -189,11 +190,22 @@ class Acara extends CI_Controller
 			return;
 		}
 
-		$kehadiran = $this->input->post('kehadiran');
-		if (!in_array($kehadiran, array('hadir', 'tidak', 'dikuasakan', 'diwakilkan'), true)) {
-			$this->pesan->pesan_warning('Silakan pilih status kehadiran.');
+		$cara = $this->input->post('cara');
+		if (!in_array($cara, array('online', 'offline'), true)) {
+			$this->pesan->pesan_warning('Silakan pilih cara hadir: Online atau Offline.');
 			redirect('acara/detail/' . $acara->kode);
 			return;
+		}
+
+		if ($cara === 'online') {
+			$kehadiran = 'online';
+		} else {
+			$kehadiran = $this->input->post('offline_tipe');
+			if (!in_array($kehadiran, array('pemilik', 'dikuasakan', 'diwakilkan'), true)) {
+				$this->pesan->pesan_warning('Silakan pilih status kehadiran: Pemilik, Dikuasakan, atau Diwakilkan.');
+				redirect('acara/detail/' . $acara->kode);
+				return;
+			}
 		}
 
 		// RSVP existing (untuk update + reuse file/token lama)
@@ -217,19 +229,9 @@ class Acara extends CI_Controller
 			'id_bast'    => $id_bast,
 			'kehadiran'  => $kehadiran,
 			'nama_hadir' => trim((string) $this->input->post('nama_hadir')),
-			'mode'       => null,
+			'mode'       => ($cara === 'online') ? 'online' : 'offline',
 			'nama_wakil' => null,
 		);
-
-		if ($kehadiran === 'hadir') {
-			$mode = $this->input->post('mode');
-			if (!in_array($mode, array('online', 'offline'), true)) {
-				$this->pesan->pesan_warning('Pilih mode kehadiran: Online atau Offline.');
-				redirect('acara/detail/' . $acara->kode);
-				return;
-			}
-			$data['mode'] = $mode;
-		}
 
 		if ($kehadiran === 'dikuasakan') {
 			$nama_wakil = trim((string) $this->input->post('nama_wakil_kuasa'));
@@ -294,18 +296,18 @@ class Acara extends CI_Controller
 			$data['surat_kuasa']     = null;
 			$data['surat_izin_huni'] = null;
 		} else {
-			// hadir/tidak -> kosongkan semua berkas wakil
+			// online/pemilik -> kosongkan semua berkas wakil
 			$data['surat_kuasa']     = null;
 			$data['ktp_wakil']       = null;
 			$data['surat_izin_huni'] = null;
 			$data['kartu_keluarga']  = null;
 		}
 
-		// QR token: untuk yang akan hadir fisik (hadir/dikuasakan/diwakilkan). 'tidak' -> null.
+		// QR token: untuk yang akan hadir fisik (pemilik/dikuasakan/diwakilkan). 'online' -> null.
 		// checkin_status/checkin_time TIDAK PERNAH disentuh di sini — peserta yang
 		// sudah check-in sudah ditolak di atas, dan data check-in adalah catatan
 		// petugas, bukan milik unit.
-		if ($kehadiran === 'tidak') {
+		if ($kehadiran === 'online') {
 			$data['qr_token'] = null;
 		} else {
 			$data['qr_token'] = ($peserta && !empty($peserta->qr_token))
