@@ -10,6 +10,49 @@ if (!function_exists('acara_tgl')) {
 		return date('d M Y, H:i', strtotime($v));
 	}
 }
+if (!function_exists('acara_dokumen_kosong')) {
+	function acara_dokumen_kosong($teks)
+	{
+		echo '<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-lg flex items-start gap-sm text-on-surface-variant">'
+			. '<span class="material-symbols-outlined" style="font-size:20px;">info</span>'
+			. '<span class="font-body-md text-body-md">' . htmlspecialchars($teks) . '</span></div>';
+	}
+}
+if (!function_exists('acara_dokumen_view')) {
+	/**
+	 * Tampilan file undangan/tata tertib: preview inline (PDF/gambar) + tombol unduh.
+	 * File Word (.doc/.docx) tidak dipreview browser, tampil sebagai kartu unduh saja.
+	 */
+	function acara_dokumen_view($url, $field, $filename, $deskripsi = '')
+	{
+		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+		$is_pdf = ($ext === 'pdf');
+		$is_img = in_array($ext, array('jpg', 'jpeg', 'png'), true);
+		?>
+		<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm">
+			<div class="p-lg">
+				<?php if ($deskripsi !== ''): ?>
+					<p class="font-body-md text-body-md text-on-surface mb-md"><?= nl2br(htmlspecialchars($deskripsi)); ?></p>
+				<?php endif; ?>
+				<?php if ($is_pdf): ?>
+					<iframe src="<?= $url; ?>" class="w-full rounded-lg border border-outline-variant" style="height:70vh;"></iframe>
+				<?php elseif ($is_img): ?>
+					<img src="<?= $url; ?>" alt="" class="w-full rounded-lg border border-outline-variant">
+				<?php else: ?>
+					<div class="flex items-center gap-sm rounded-lg bg-surface-container p-md text-on-surface-variant">
+						<span class="material-symbols-outlined" style="font-size:24px;">description</span>
+						<span class="font-body-md text-body-md">Dokumen (Word) — gunakan tombol unduh untuk membuka.</span>
+					</div>
+				<?php endif; ?>
+				<a href="<?= $url; ?>?dl=1"
+				   class="mt-md inline-flex items-center gap-xs bg-primary text-on-primary rounded-lg px-lg py-sm font-label-md text-label-md transition-all hover:!bg-[#15803d] hover:!text-white">
+					<span class="material-symbols-outlined" style="font-size:20px;">download</span>Unduh
+				</a>
+			</div>
+		</div>
+		<?php
+	}
+}
 $keh   = $peserta ? $peserta->kehadiran : '';
 $mode  = $peserta ? $peserta->mode : '';
 $namaH = $peserta ? $peserta->nama_hadir : '';
@@ -56,6 +99,28 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 		</div>
 	</div>
 </div>
+
+<!-- Tab nav -->
+<div class="flex border-b border-outline-variant mb-lg overflow-x-auto">
+	<?php
+	$tabs = array(
+		'registrasi' => array('label' => 'Registrasi Kehadiran', 'icon' => 'how_to_reg'),
+		'undangan'   => array('label' => 'File Undangan', 'icon' => 'mail'),
+		'tatib'      => array('label' => 'Tata Tertib', 'icon' => 'rule'),
+		'materi'     => array('label' => 'Materi', 'icon' => 'menu_book'),
+	);
+	$first = true;
+	foreach ($tabs as $key => $t):
+	?>
+		<button type="button" class="acara-tab-btn flex items-center gap-xs whitespace-nowrap px-lg py-sm font-label-md text-label-md border-b-2 transition-all <?= $first ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'; ?>"
+				data-tab="<?= $key; ?>">
+			<span class="material-symbols-outlined" style="font-size:18px;"><?= $t['icon']; ?></span><?= $t['label']; ?>
+		</button>
+	<?php $first = false; endforeach; ?>
+</div>
+
+<!-- Tab 1: Registrasi Kehadiran -->
+<div class="acara-tab-panel" data-tab="registrasi">
 
 <?php if (!empty($ada_voting)): ?>
 	<a href="<?= site_url('acara/voting/' . $acara->kode); ?>"
@@ -226,3 +291,58 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 		<?php endif; ?>
 	</div>
 </div>
+
+</div><!-- /Tab 1: Registrasi Kehadiran -->
+
+<!-- Tab 2: File Undangan -->
+<div class="acara-tab-panel hidden" data-tab="undangan">
+	<?php if (!empty($acara->file_undangan)): ?>
+		<?php acara_dokumen_view(site_url('acara/dokumen/' . $acara->kode . '/undangan'), 'file_undangan', $acara->file_undangan); ?>
+	<?php else: ?>
+		<?php acara_dokumen_kosong('Belum ada file undangan yang diunggah untuk acara ini.'); ?>
+	<?php endif; ?>
+</div>
+
+<!-- Tab 3: Tata Tertib -->
+<div class="acara-tab-panel hidden" data-tab="tatib">
+	<?php if (!empty($acara->file_tata_tertib)): ?>
+		<?php acara_dokumen_view(site_url('acara/dokumen/' . $acara->kode . '/tatib'), 'file_tata_tertib', $acara->file_tata_tertib); ?>
+	<?php else: ?>
+		<?php acara_dokumen_kosong('Belum ada file tata tertib yang diunggah untuk acara ini.'); ?>
+	<?php endif; ?>
+</div>
+
+<!-- Tab 4: Materi -->
+<div class="acara-tab-panel hidden" data-tab="materi">
+	<?php if (!empty($acara->file_materi)): ?>
+		<?php acara_dokumen_view(site_url('acara/dokumen/' . $acara->kode . '/materi'), 'file_materi', $acara->file_materi, (string) $acara->deskripsi_materi); ?>
+	<?php elseif (!empty($acara->deskripsi_materi)): ?>
+		<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-lg">
+			<p class="font-body-md text-body-md text-on-surface"><?= nl2br(htmlspecialchars($acara->deskripsi_materi)); ?></p>
+		</div>
+	<?php else: ?>
+		<?php acara_dokumen_kosong('Belum ada materi yang diunggah untuk acara ini.'); ?>
+	<?php endif; ?>
+</div>
+
+<script>
+	(function () {
+		var btns = document.querySelectorAll('.acara-tab-btn');
+		var panels = document.querySelectorAll('.acara-tab-panel');
+		btns.forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var tab = btn.getAttribute('data-tab');
+				btns.forEach(function (b) {
+					var active = b === btn;
+					b.classList.toggle('border-primary', active);
+					b.classList.toggle('text-primary', active);
+					b.classList.toggle('border-transparent', !active);
+					b.classList.toggle('text-on-surface-variant', !active);
+				});
+				panels.forEach(function (p) {
+					p.classList.toggle('hidden', p.getAttribute('data-tab') !== tab);
+				});
+			});
+		});
+	})();
+</script>
