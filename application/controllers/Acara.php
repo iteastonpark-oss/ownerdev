@@ -120,6 +120,52 @@ class Acara extends CI_Controller
 	}
 
 	/**
+	 * Stream file undangan / tata tertib / materi acara. bmsdev menyimpan
+	 * ketiganya di upload/berkas/ (= BMS_UPLOAD_PATH.'berkas/' pada deployment
+	 * produksi), pola sama seperti banner().
+	 * $tipe: 'undangan' (default) | 'tatib' | 'materi'.
+	 */
+	public function dokumen($kode = '', $tipe = 'undangan')
+	{
+		if ($kode === '') show_404();
+		$kolom_map = array(
+			'tatib'  => 'file_tata_tertib',
+			'materi' => 'file_materi',
+		);
+		$kolom = isset($kolom_map[$tipe]) ? $kolom_map[$tipe] : 'file_undangan';
+
+		$acara = $this->db->select($kolom)->from('acara')
+			->where('kode', $kode)->where('hapus', 0)
+			->where_in('status', array(1, 2))->get()->row();
+		if (!$acara || empty($acara->$kolom)) show_404();
+
+		$file = BMS_UPLOAD_PATH . 'berkas/' . basename($acara->$kolom);
+		if (!is_file($file)) show_404();
+
+		$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+		$mime = array(
+			'pdf'  => 'application/pdf',
+			'jpg'  => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+			'doc'  => 'application/msword',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		);
+		if (!isset($mime[$ext])) show_404();
+
+		$nama_map = array('tatib' => 'TataTertib', 'materi' => 'Materi');
+		$nama = (isset($nama_map[$tipe]) ? $nama_map[$tipe] : 'Undangan') . '-' . preg_replace('/[^A-Za-z0-9_-]/', '', $kode) . '.' . $ext;
+
+		while (ob_get_level()) ob_end_clean();
+		header('Content-Type: ' . $mime[$ext]);
+		if ($this->input->get('dl')) {
+			header('Content-Disposition: attachment; filename="' . $nama . '"');
+		}
+		header('Content-Length: ' . filesize($file));
+		header('Cache-Control: private, max-age=3600');
+		readfile($file);
+		exit;
+	}
+
+	/**
 	 * QR kehadiran: PNG berisi qr_token peserta (unit yang login).
 	 * $dl='download' -> paksa unduh. Hanya untuk yg akan hadir & punya token.
 	 */
