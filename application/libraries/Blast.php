@@ -12,15 +12,37 @@ class Blast
 	var $base_url = 'https://api.watzap.id/v1';
 	var $credential_checked = false;
 
-	function __construct($apiKey = 'HLNW0LHSBP6JSBS3', $numberKey = 'zw0ekX6cyRQA3ghf')
+	function __construct($apiKey = null, $numberKey = null)
 	{
 		$CI = &get_instance();
 		$this->db = $CI->load->database('default', TRUE);
 		$this->apl = $CI->load->library('apl', TRUE);
 
-		$this->api_key = (string) $apiKey;
-		$this->number_key = (string) $numberKey;
+		$this->api_key = (string) $this->resolveCredential($apiKey, 'BLAST_API_KEY', 'HLNW0LHSBP6JSBS3');
+		$this->number_key = (string) $this->resolveCredential($numberKey, 'BLAST_NUMBER_KEY', 'zw0ekX6cyRQA3ghf');
 		$this->syncLegacyAliases();
+	}
+
+	/**
+	 * Kredensial WA bisa dioverride via env (fastcgi_param) tanpa menyentuh source,
+	 * krn repo ini public — jangan hardcode kredensial baru di sini.
+	 */
+	private function resolveCredential($explicit, $envKey, $default)
+	{
+		if ($explicit !== null && $explicit !== '') {
+			return $explicit;
+		}
+
+		$fromGetenv = getenv($envKey);
+		if ($fromGetenv !== false && $fromGetenv !== '') {
+			return $fromGetenv;
+		}
+
+		if (isset($_SERVER[$envKey]) && $_SERVER[$envKey] !== '') {
+			return $_SERVER[$envKey];
+		}
+
+		return $default;
 	}
 
 	private function syncLegacyAliases()
