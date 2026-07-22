@@ -32,6 +32,22 @@ class Login extends CI_Controller
 
 		$cek = $this->apl->getSelectedData("bast", $where)->num_rows();
 		if ($cek > 0) {
+			// Nomor pengirim OTP ditentukan dari Pengaturan WA Blast (bmsdev, kode 'otp_owner'),
+			// bukan hardcode/env lagi. Kalau belum diset admin, tolak login (jangan kirim OTP diam2 dari nomor sembarang).
+			$otpWa = $this->db->select('db_wa.*')
+				->from('wa_pengaturan')
+				->join('db_wa', 'db_wa.id_wa = wa_pengaturan.id_wa')
+				->where('wa_pengaturan.kode', 'otp_owner')
+				->where('wa_pengaturan.hapus', 0)
+				->where('db_wa.hapus', 0)
+				->get()->row();
+
+			if (!$otpWa) {
+				$this->pesan->pesan_warning("Sistem pengiriman OTP belum dikonfigurasi. Mohon hubungi Tenant Relation di 0823-1212-2021.");
+				redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : site_url('login'));
+				return;
+			}
+
 			$data = $this->apl->getSelectedData("bast", $where)->row();
 
 			$uid = uniqid();
@@ -97,7 +113,10 @@ Building Management ';
 			ignore_user_abort(true);
 			set_time_limit(60);
 
-			$wa_response = $this->blast->send_WA($phone, $message, $id_bast);
+			$otpApiKey = isset($otpWa->api_key) && $otpWa->api_key !== '' ? $otpWa->api_key : (isset($otpWa->token) ? $otpWa->token : '');
+			$otpNumberKey = isset($otpWa->number_key) && $otpWa->number_key !== '' ? $otpWa->number_key : (isset($otpWa->username) ? $otpWa->username : '');
+			$blastOtp = new Blast($otpApiKey, $otpNumberKey);
+			$wa_response = $blastOtp->send_WA($phone, $message, $id_bast);
 
 			// Log status WA ke bast_login untuk monitoring
 			$wa_success = 0;
@@ -171,6 +190,20 @@ Building Management ';
 			return;
 		}
 
+		// Nomor pengirim OTP dari Pengaturan WA Blast (bmsdev, kode 'otp_owner') — lihat login_act().
+		$otpWa = $this->db->select('db_wa.*')
+			->from('wa_pengaturan')
+			->join('db_wa', 'db_wa.id_wa = wa_pengaturan.id_wa')
+			->where('wa_pengaturan.kode', 'otp_owner')
+			->where('wa_pengaturan.hapus', 0)
+			->where('db_wa.hapus', 0)
+			->get()->row();
+
+		if (!$otpWa) {
+			echo json_encode(array('success' => false, 'message' => 'Sistem pengiriman OTP belum dikonfigurasi. Mohon hubungi Tenant Relation di 0823-1212-2021.'));
+			return;
+		}
+
 		$new_otp = mt_rand(1000, 9999);
 		$new_expired = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 		$new_uid = uniqid();
@@ -226,7 +259,10 @@ Building Management ';
 		ignore_user_abort(true);
 		set_time_limit(60);
 
-		$wa_response = $this->blast->send_WA($hp, $message, $id_bast);
+		$otpApiKey = isset($otpWa->api_key) && $otpWa->api_key !== '' ? $otpWa->api_key : (isset($otpWa->token) ? $otpWa->token : '');
+		$otpNumberKey = isset($otpWa->number_key) && $otpWa->number_key !== '' ? $otpWa->number_key : (isset($otpWa->username) ? $otpWa->username : '');
+		$blastOtp = new Blast($otpApiKey, $otpNumberKey);
+		$wa_response = $blastOtp->send_WA($hp, $message, $id_bast);
 		$wa_success = (is_array($wa_response) && isset($wa_response['success'])) ? (int)$wa_response['success'] : 0;
 		$wa_message_raw = '';
 		if (is_array($wa_response) && isset($wa_response['errors'][0]['message'])) {
