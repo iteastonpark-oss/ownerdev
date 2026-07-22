@@ -101,7 +101,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 </div>
 
 <!-- Tab nav -->
-<div class="flex border-b border-outline-variant mb-lg overflow-x-auto">
+<div class="flex gap-xs bg-surface-container rounded-full p-xs mb-lg overflow-x-auto">
 	<?php
 	$tabs = array(
 		'registrasi' => array('label' => 'Registrasi Kehadiran', 'icon' => 'how_to_reg'),
@@ -112,7 +112,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 	$first = true;
 	foreach ($tabs as $key => $t):
 	?>
-		<button type="button" class="acara-tab-btn flex items-center gap-xs whitespace-nowrap px-lg py-sm font-label-md text-label-md border-b-2 transition-all <?= $first ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'; ?>"
+		<button type="button" class="acara-tab-btn flex items-center gap-xs whitespace-nowrap rounded-full px-lg py-sm font-label-md text-label-md font-semibold transition-all <?= $first ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface'; ?>"
 				data-tab="<?= $key; ?>">
 			<span class="material-symbols-outlined" style="font-size:18px;"><?= $t['icon']; ?></span><?= $t['label']; ?>
 		</button>
@@ -334,10 +334,12 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 				var tab = btn.getAttribute('data-tab');
 				btns.forEach(function (b) {
 					var active = b === btn;
-					b.classList.toggle('border-primary', active);
-					b.classList.toggle('text-primary', active);
-					b.classList.toggle('border-transparent', !active);
+					b.classList.toggle('bg-primary', active);
+					b.classList.toggle('text-on-primary', active);
+					b.classList.toggle('shadow-sm', active);
 					b.classList.toggle('text-on-surface-variant', !active);
+					b.classList.toggle('hover:bg-surface-container-lowest', !active);
+					b.classList.toggle('hover:text-on-surface', !active);
 				});
 				panels.forEach(function (p) {
 					p.classList.toggle('hidden', p.getAttribute('data-tab') !== tab);
