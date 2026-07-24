@@ -102,7 +102,10 @@ class Blast
 			CURLOPT_POSTFIELDS => json_encode($payload),
 			CURLOPT_SSL_VERIFYHOST => 0,
 			CURLOPT_SSL_VERIFYPEER => 0,
-			CURLOPT_TIMEOUT => 10,
+			// wait_until_send dimatikan (0) di semua payload send_message — versi
+			// wait=1 pernah hang/timeout tanpa batas jelas untuk sebagian nomor meski
+			// device sehat & pesan tetap terkirim. 30s tetap dipertahankan sbg margin aman.
+			CURLOPT_TIMEOUT => 30,
 		));
 
 		$response = curl_exec($curl);
@@ -256,7 +259,7 @@ class Blast
 			$payload = $this->makeAuthPayload(array(
 				'phone_no' => $phone,
 				'message' => $text,
-				'wait_until_send' => '1',
+				'wait_until_send' => '0',
 			));
 
 			$response = $this->request('send_message', $payload);
@@ -339,7 +342,7 @@ class Blast
 			$payload = $this->makeAuthPayload(array(
 				'phone_no' => $phone,
 				'message' => $message,
-				'wait_until_send' => '1',
+				'wait_until_send' => '0',
 			));
 
 			$response = $this->request('send_message', $payload);
@@ -406,7 +409,7 @@ class Blast
 					'url' => $url_gambar,
 					'message' => $caption,
 					'separate_caption' => '0',
-					'wait_until_send' => '1',
+					'wait_until_send' => '0',
 				));
 				$response = $this->request('send_image_url', $payload);
 			} else {
@@ -421,7 +424,7 @@ class Blast
 					$this->request('send_message', $this->makeAuthPayload(array(
 						'phone_no' => $phone,
 						'message' => $caption,
-						'wait_until_send' => '1',
+						'wait_until_send' => '0',
 					)));
 				}
 			}
