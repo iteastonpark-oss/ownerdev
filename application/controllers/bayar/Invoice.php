@@ -88,12 +88,6 @@ class Invoice extends CI_Controller
 			$r[0] = $no;
 
 			$r[1] = '<b>' . $r[1] . '</b>';
-			$aksi = '<div class="dropdown">
-<button class="btn btn-wrapper" data-toggle="dropdown">
- <i class="fa fa-ellipsis-v"></i>
-</button>
-<div class="dropdown-menu dropdown-menu-right">';
-
 
 			$sisa = $sisa + $r[4] + $r[5] - $r[6];
 			$r[2] = $this->apl->tgl_format($r[2], 1);
@@ -105,30 +99,26 @@ class Invoice extends CI_Controller
 
 			if ($r[$jumlah - 2] == 1) {
 				$td[2] = $r[4] + $r[5];
-				$r[$jumlah - 2] = '<label class="btn btn-sm btn-info btn-block">Invoice</label>';
-				$r[$jumlah - 1] = $aksi
-					. anchor(
-						'#modal_form',
-						'<i class="fa fa-print"></i> Print',
-						'data-id="' . $r[$jumlah - 1] . '" data-toggle="modal" 
-								class="print_data dropdown-item"'
-					)
-					. '</div>';
+				$r[$jumlah - 2] = '<span class="badge badge-warning badge-pill" title="Tagihan belum dibayar">Invoice</span>';
+				$r[$jumlah - 1] = anchor(
+					'#modal_form',
+					'<i class="fa fa-print"></i> Print',
+					'data-id="' . $r[$jumlah - 1] . '" data-toggle="modal" class="print_data btn btn-sm btn-primary"'
+				);
 			}
 			if ($r[$jumlah - 2] == 2) {
 				$td[2] = $r[6];
 
-				$r[$jumlah - 2] = '<label class="btn btn-sm btn-success btn-block">Payment</label>';
-				$r[$jumlah - 1] = $aksi
-					. anchor(
-						URLADMIN.'share/ipl?id=' . urlencode(base64_encode($r[$jumlah-1])),
-						'<i class="fa fa-print"></i> Print',
-						'class="dropdown-item"  target="_blank" title="Print"'
-					) . '</div>';
+				$r[$jumlah - 2] = '<span class="badge badge-success badge-pill" title="Sudah dibayar">Payment</span>';
+				$r[$jumlah - 1] = anchor(
+					URLADMIN.'share/ipl?id=' . urlencode(base64_encode($r[$jumlah-1])),
+					'<i class="fa fa-print"></i> Print',
+					'class="btn btn-sm btn-primary" target="_blank" title="Print"'
+				);
 			}
 			if ($r[$jumlah - 2] == 3) {
-				$r[$jumlah - 2] = '<label class="btn btn-sm btn-warning btn-block">Credit Note</label>';
-				$r[$jumlah - 1] = '';
+				$r[$jumlah - 2] = '<span class="badge badge-secondary badge-pill" title="Catatan kredit">Credit Note</span>';
+				$r[$jumlah - 1] = '<span class="text-muted">-</span>';
 				$td[2] = $r[6];
 
 			}
