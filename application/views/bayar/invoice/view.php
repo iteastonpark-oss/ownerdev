@@ -25,7 +25,7 @@ $controller = $this->uri->segment(1) . '/' . $this->uri->segment(2);
 				<tr class="active bg-active">
 					<th>Form</th>
 					<th>Total</th>
-					<th></th>
+					<th>Aksi</th>
 				</tr>
 				</thead>
 				<!--
