@@ -65,11 +65,6 @@ $controller = $this->uri->segment(1) . '/' . $this->uri->segment(2);
 			"paging": false,
 			"filter": false,
 			"bInfo": false,
-			"fixedHeader": {
-				header: true,
-				footer: true,
-				headerOffset: 60
-			},
 			"ajax": {
 				"url": "<?php echo site_url($controller . '/ajax_list' . "?" . $_SERVER['QUERY_STRING']); ?>",
 				"type": "POST",
