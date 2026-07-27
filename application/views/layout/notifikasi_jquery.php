@@ -7,7 +7,10 @@
  */
 ?>
 <style>
-	.badge {
+	/* Hanya badge angka di lonceng notifikasi navbar (#notifikasi). Selektor `.badge`
+	   polos sebelumnya membuat SEMUA badge di aplikasi ikut position:absolute + dipaksa
+	   hijau, sehingga badge status (mis. di tabel invoice) melayang keluar dari selnya. */
+	#notifikasi .badge {
 		position: absolute;
 		background: #289679;
 		top: -3px;
