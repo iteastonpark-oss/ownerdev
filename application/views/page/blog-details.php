@@ -1,6 +1,6 @@
 <div class="container" data-aos="fade-up">
 
-	<div class="row mt--9 mb--8">
+	<div class="row mt-md mb-lg">
 
 
 		<div class="card">
@@ -17,7 +17,7 @@
 			<div class="card-header">
 				<h2 class="title"><?= $post->judul; ?></h2>
 
-				<div class="meta-top mb--3">
+				<div class="meta-top mb-sm">
 					<ul>
 						<!--
 						<li class="d-flex align-items-center"><i class="bi bi-person"></i> <a href="blog-details.html">John Doe</a></li>
@@ -32,7 +32,7 @@
 					</ul>
 				</div><!-- End meta top -->
 			</div>
-			<div class="content mb--9 mt--8">
+			<div class="content prose max-w-none py-md">
 				<?= $post->body; ?>
 			</div><!-- End post content -->
 
