@@ -12,6 +12,19 @@
 		padding: 0;
 		color: inherit;
 	}
+
+	/* Argon CSS set warna teks default GLOBAL (body{color:#525f7f}, abu-kebiruan)
+	   yang ikut kepakai di semua <p>/<li>/heading di sini, padahal di editor CMS
+	   (CKEditor) teksnya hitam polos -- makanya seluruh isi artikel keliatan biru
+	   semua, bukan cuma link. Kembalikan ke warna teks normal, link tetap dibedakan. */
+	.content, .content p, .content li, .content h1, .content h2, .content h3,
+	.content h4, .content h5, .content h6, .content strong, .content em {
+		color: #1a1a1a !important;
+	}
+	.content a {
+		color: #2563eb !important;
+		text-decoration: underline;
+	}
 </style>
 
 <div class="container" data-aos="fade-up">
