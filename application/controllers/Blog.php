@@ -90,6 +90,16 @@ class Blog extends CI_Controller
 		$id = $this->input->get('id');
 		$data['page'] = 'page/blog-details'; //Halaman di tampilkan
 		$data['post'] = $this->web->getPostDetail($id, $slug)->row();
+
+		// Konten CMS (WYSIWYG) sering diakhiri/diawali beberapa <p>&nbsp;</p> kosong
+		// (spasi kosong yg ditambahkan penulis di editor) -- dengan styling prose
+		// (jarak antar-paragraf otomatis), ini jadi celah kosong besar di atas/bawah
+		// artikel. Buang paragraf kosong beruntun di awal & akhir saja.
+		if ($data['post'] && !empty($data['post']->body)) {
+			$empty_p = '<p>\s*(&nbsp;|&\#160;|\xC2\xA0|\s)*\s*<\/p>';
+			$data['post']->body = preg_replace('~^(\s*' . $empty_p . '\s*)+~i', '', $data['post']->body);
+			$data['post']->body = preg_replace('~(\s*' . $empty_p . '\s*)+$~i', '', $data['post']->body);
+		}
 		//$data['recent'] = $this->web->getPostRecent("1")->result();
 		$data['visit'] = $this->web->getPostVisit($id)->row()->jumlah;
 

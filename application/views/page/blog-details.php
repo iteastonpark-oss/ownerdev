@@ -1,3 +1,19 @@
+<style>
+	/* Konten CMS (WYSIWYG lama) kadang pakai <tt>/<code> cuma buat trik indentasi
+	   spasi, bukan untuk tampilkan kode. Plugin typography Tailwind (prose)
+	   otomatis kasih gaya monospace/kotak ke tag itu -- bentrok dgn heading/teks
+	   normal di sekitarnya. Netralkan supaya tampil sebagai teks biasa. */
+	.content tt, .content code, .content kbd {
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+		background: none;
+		border: none;
+		padding: 0;
+		color: inherit;
+	}
+</style>
+
 <div class="container" data-aos="fade-up">
 
 	<div class="row mt-md mb-lg">
