@@ -40,7 +40,8 @@
 				?>
 
 				<img src="<?= $this->upload_model->link_web($post->banner, "post"); ?>"
-					alt="" class="img-fluid w-100 img-thumbnail">
+					alt="" class="img-fluid w-100 img-thumbnail"
+					onerror="this.onerror=null;this.src='<?= base_url('assets/no_pict.png'); ?>';">
 			</div>
 
 			<div class="card-header px-md">

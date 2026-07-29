@@ -9,7 +9,8 @@
 
 					<div class="post-img">
 						<img src="<?= $this->upload_model->link_web($p->thumb, "post"); ?>"
-							 alt="" class="img-fluid w-100 img-thumbnail" width="30px">
+							 alt="" class="img-fluid w-100 img-thumbnail" width="30px"
+							 onerror="this.onerror=null;this.src='<?= base_url('assets/no_pict.png'); ?>';">
 					</div>
 					<div class="card-body">
 						<h4 class="title">
