@@ -43,7 +43,7 @@
 					alt="" class="img-fluid w-100 img-thumbnail">
 			</div>
 
-			<div class="card-header">
+			<div class="card-header px-md">
 				<h2 class="title"><?= $post->judul; ?></h2>
 
 				<div class="meta-top mb-sm">
@@ -61,11 +61,11 @@
 					</ul>
 				</div><!-- End meta top -->
 			</div>
-			<div class="content prose max-w-none py-md">
+			<div class="content prose max-w-none py-md px-md">
 				<?= $post->body; ?>
 			</div><!-- End post content -->
 
-			<div class="meta-bottom card-footer">
+			<div class="meta-bottom card-footer px-md">
 				<i class="bi bi-folder"></i>
 
 				<i class="fa fa-user"></i> <?= $visit; ?>
