@@ -22,7 +22,6 @@ $this->apl = new Apl();
 $dropdown_model = new Dropdown_Model();
 $this->dropdown_model = new Dropdown_Model();
 
-require_once 'layout/notifikasi_jquery.php';
 //require_once 'layout/loader.php';
 
 $sidebar = "layout/sidebar";
@@ -33,6 +32,13 @@ $navbar = "layout/navbar";
     <!-- Dashboard Layout (Sudah Login) -->
     <?php require_once 'layout/head-only.php'; ?>
     <body class="bg-background min-h-screen">
+        <?php
+        // notifikasi_jquery.php butuh jQuery (dimuat di head-only.php) -- harus di-include
+        // SETELAH <body>, bukan sebelum <head>, kalau tidak script $(document).ready(...)
+        // di dalamnya jalan sebelum jQuery ada ($ is not defined) dan toast pesan
+        // (sukses/error) gagal tampil secara diam-diam di seluruh halaman.
+        require_once 'layout/notifikasi_jquery.php';
+        ?>
 
         <script>
             var BASE_URL = '<?= base_url() ?>';
@@ -156,7 +162,10 @@ $navbar = "layout/navbar";
     <!-- Login Page Layout (Belum Login) -->
     <?php require_once 'layout/head-only.php'; ?>
     <body class="min-h-screen bg-background">
-        <?php require_once 'login/login.php'; ?>
+        <?php
+        require_once 'layout/notifikasi_jquery.php';
+        require_once 'login/login.php';
+        ?>
     </body>
 <?php endif; ?>
 </html>
