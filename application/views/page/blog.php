@@ -15,16 +15,16 @@
 						<h4 class="title">
 							<?= $p->judul; ?>
 						</h4>
-						<div class="d-flex align-items-center mb--4">
+						<div class="d-flex align-items-center mb-sm">
 							<!--
 							<img src="<?= base_url('assets/web/assets/img/blog/blog-author.jpg'); ?>" alt=""
 								 class="img-fluid post-author-img flex-shrink-0" width="30px">
 							-->
 							<div class="post-meta">
-								<p class="post-author-list"><h6>Penulis</h6></p>
-								<p class="post-date mt--3">
-									<time datetime="2022-01-01"><h6><?= $p->tm; ?></h6></time>
-								</p>
+								<h6 class="post-author-list mb-0">Penulis</h6>
+								<h6 class="post-date mb-0 mt-xs">
+									<time datetime="2022-01-01"><?= $p->tm; ?></time>
+								</h6>
 							</div>
 
 						</div>
@@ -46,7 +46,7 @@
 </div><!-- End blog posts list -->
 
 <div class="Page">
-	<ul class="paginationpagination justify-content-center">
+	<ul class="pagination justify-content-center">
 		<?php
 
 		for ($i = 1; $i <= $pages; $i++) { ?>
