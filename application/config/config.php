@@ -390,12 +390,13 @@ $config['sess_regenerate_destroy'] = FALSE;
 */
 
 
-// Session 7 hari (permintaan tim IT) — driver database (ci_sessions, sama seperti bmsdev)
-// supaya tak tergantung GC file /tmp yang dipakai bersama situs lain di server.
+// Session 7 hari (permintaan tim IT) — driver database, tabel TERPISAH dari bmsdev
+// (ci_sessions_owner, bukan ci_sessions) karena GC bmsdev pakai sess_expiration 4 jam
+// dan akan ikut menghapus baris session owner kalau satu tabel dipakai bersama.
 $config['sess_driver'] = 'database';
-$config['sess_cookie_name'] = 'ci_session';
+$config['sess_cookie_name'] = 'ci_session_owner';
 $config['sess_expiration'] = 604800;
-$config['sess_save_path'] = 'ci_sessions';
+$config['sess_save_path'] = 'ci_sessions_owner';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
