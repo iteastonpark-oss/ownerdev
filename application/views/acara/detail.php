@@ -100,8 +100,8 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 	</div>
 </div>
 
-<!-- Tab nav -->
-<div class="flex border-b border-outline-variant mb-lg overflow-x-auto">
+<!-- Tab nav: vertikal menumpuk (full width) di HP supaya semua tab langsung kelihatan tanpa geser, horizontal seperti biasa di layar lebar -->
+<div class="flex flex-col gap-xs sm:flex-row sm:gap-0 sm:border-b sm:border-outline-variant mb-lg sm:overflow-x-auto">
 	<?php
 	$tabs = array(
 		'registrasi' => array('label' => 'Registrasi Kehadiran', 'icon' => 'how_to_reg'),
@@ -111,8 +111,11 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 	);
 	$first = true;
 	foreach ($tabs as $key => $t):
+		$activeCls = $first
+			? 'bg-primary text-on-primary sm:bg-transparent sm:text-primary border-transparent sm:border-b-2 sm:border-primary'
+			: 'bg-surface-container text-on-surface-variant sm:bg-transparent hover:bg-surface-container-high sm:hover:text-on-surface border-transparent sm:border-b-2 sm:hover:border-outline-variant';
 	?>
-		<button type="button" class="acara-tab-btn flex items-center gap-xs whitespace-nowrap px-lg py-sm font-label-md text-label-md border-b-2 transition-all <?= $first ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'; ?>"
+		<button type="button" class="acara-tab-btn flex items-center gap-xs w-full sm:w-auto whitespace-nowrap rounded-lg sm:rounded-none px-lg py-sm font-label-md text-label-md border transition-all <?= $activeCls; ?>"
 				data-tab="<?= $key; ?>">
 			<span class="material-symbols-outlined" style="font-size:18px;"><?= $t['icon']; ?></span><?= $t['label']; ?>
 		</button>
@@ -342,15 +345,16 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 		var btns = document.querySelectorAll('.acara-tab-btn');
 		var panels = document.querySelectorAll('.acara-tab-panel');
+		var activeCls = ['bg-primary', 'text-on-primary', 'sm:bg-transparent', 'sm:text-primary', 'sm:border-primary'];
+		var inactiveCls = ['bg-surface-container', 'text-on-surface-variant', 'sm:bg-transparent'];
 		btns.forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				var tab = btn.getAttribute('data-tab');
 				btns.forEach(function (b) {
 					var active = b === btn;
-					b.classList.toggle('border-primary', active);
-					b.classList.toggle('text-primary', active);
 					b.classList.toggle('border-transparent', !active);
-					b.classList.toggle('text-on-surface-variant', !active);
+					activeCls.forEach(function (c) { b.classList.toggle(c, active); });
+					inactiveCls.forEach(function (c) { b.classList.toggle(c, !active); });
 				});
 				panels.forEach(function (p) {
 					p.classList.toggle('hidden', p.getAttribute('data-tab') !== tab);
