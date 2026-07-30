@@ -111,9 +111,12 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 	);
 	$first = true;
 	foreach ($tabs as $key => $t):
+		// !bg-primary/!text-primary/!border-primary/!bg-transparent/!border-transparent pakai
+		// modifier "!" krn Argon (argon.css, dimuat global) mendefinisikan class bawaan Bootstrap
+		// yang sama dengan `!important`, yg tanpa modifier ini akan menang lawan utility Tailwind.
 		$activeCls = $first
-			? 'bg-primary text-on-primary sm:bg-transparent sm:text-primary border-transparent sm:border-b-2 sm:border-primary'
-			: 'bg-surface-container text-on-surface-variant sm:bg-transparent hover:bg-surface-container-high sm:hover:text-on-surface border-transparent sm:border-b-2 sm:hover:border-outline-variant';
+			? '!bg-primary text-on-primary sm:!bg-transparent sm:!text-primary !border-transparent sm:border-b-2 sm:!border-primary'
+			: 'bg-surface-container text-on-surface-variant sm:!bg-transparent hover:bg-surface-container-high sm:hover:text-on-surface !border-transparent sm:border-b-2 sm:hover:!border-outline-variant';
 	?>
 		<button type="button" class="acara-tab-btn flex items-center gap-xs w-full sm:w-auto whitespace-nowrap rounded-lg sm:rounded-none px-lg py-sm font-label-md text-label-md border transition-all <?= $activeCls; ?>"
 				data-tab="<?= $key; ?>">
@@ -345,14 +348,15 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 
 		var btns = document.querySelectorAll('.acara-tab-btn');
 		var panels = document.querySelectorAll('.acara-tab-panel');
-		var activeCls = ['bg-primary', 'text-on-primary', 'sm:bg-transparent', 'sm:text-primary', 'sm:border-primary'];
-		var inactiveCls = ['bg-surface-container', 'text-on-surface-variant', 'sm:bg-transparent'];
+		// Sinkron dgn class PHP di atas ($activeCls) — modifier "!" wajib krn argon.css.
+		var activeCls = ['!bg-primary', 'text-on-primary', 'sm:!bg-transparent', 'sm:!text-primary', 'sm:!border-primary'];
+		var inactiveCls = ['bg-surface-container', 'text-on-surface-variant', 'sm:!bg-transparent'];
 		btns.forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				var tab = btn.getAttribute('data-tab');
 				btns.forEach(function (b) {
 					var active = b === btn;
-					b.classList.toggle('border-transparent', !active);
+					b.classList.toggle('!border-transparent', !active);
 					activeCls.forEach(function (c) { b.classList.toggle(c, active); });
 					inactiveCls.forEach(function (c) { b.classList.toggle(c, !active); });
 				});
