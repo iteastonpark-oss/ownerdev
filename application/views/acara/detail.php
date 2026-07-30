@@ -32,7 +32,7 @@ if (!function_exists('acara_dokumen_view')) {
 		<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm">
 			<div class="p-lg">
 				<?php if ($deskripsi !== ''): ?>
-					<p class="font-body-md text-body-md text-on-surface mb-md"><?= nl2br(htmlspecialchars($deskripsi)); ?></p>
+					<div class="font-body-md text-body-md text-on-surface mb-md acara-rich-text"><?= $deskripsi; ?></div>
 				<?php endif; ?>
 				<?php if ($is_pdf): ?>
 					<iframe src="<?= $url; ?>" class="w-full rounded-lg border border-outline-variant" style="height:70vh;"></iframe>
@@ -76,7 +76,7 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 				 class="w-full rounded-lg border border-outline-variant mb-md">
 		<?php endif; ?>
 		<?php if (!empty($acara->deskripsi)): ?>
-			<p class="font-body-md text-body-md text-on-surface mb-md"><?= nl2br(htmlspecialchars($acara->deskripsi)); ?></p>
+			<div class="font-body-md text-body-md text-on-surface mb-md acara-rich-text"><?= $acara->deskripsi; ?></div>
 		<?php endif; ?>
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-sm font-body-md text-body-md text-on-surface-variant">
 			<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span><strong class="text-on-surface">Mulai:</strong> <?= acara_tgl($acara->tgl_mulai); ?></div>
@@ -318,15 +318,28 @@ $inputCls = 'w-full border border-outline-variant rounded-lg px-md py-sm font-bo
 		<?php acara_dokumen_view(site_url('acara/dokumen/' . $acara->kode . '/materi'), 'file_materi', $acara->file_materi, (string) $acara->deskripsi_materi); ?>
 	<?php elseif (!empty($acara->deskripsi_materi)): ?>
 		<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-lg">
-			<p class="font-body-md text-body-md text-on-surface"><?= nl2br(htmlspecialchars($acara->deskripsi_materi)); ?></p>
+			<div class="font-body-md text-body-md text-on-surface acara-rich-text"><?= $acara->deskripsi_materi; ?></div>
 		</div>
 	<?php else: ?>
 		<?php acara_dokumen_kosong('Belum ada materi yang diunggah untuk acara ini.'); ?>
 	<?php endif; ?>
 </div>
 
+<style>
+	/* Konten kaya (link/list) dari editor Quill di admin BMS — reset Tailwind preflight menghapus style default link/list. */
+	.acara-rich-text a { color: var(--md-sys-color-primary, #15803d); text-decoration: underline; }
+	.acara-rich-text ul { list-style: disc; padding-left: 1.5em; }
+	.acara-rich-text ol { list-style: decimal; padding-left: 1.5em; }
+	.acara-rich-text p:not(:last-child) { margin-bottom: 0.5em; }
+</style>
+
 <script>
 	(function () {
+		document.querySelectorAll('.acara-rich-text a').forEach(function (a) {
+			a.setAttribute('target', '_blank');
+			a.setAttribute('rel', 'noopener noreferrer');
+		});
+
 		var btns = document.querySelectorAll('.acara-tab-btn');
 		var panels = document.querySelectorAll('.acara-tab-panel');
 		btns.forEach(function (btn) {
