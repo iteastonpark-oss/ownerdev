@@ -201,8 +201,17 @@
                     <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Masuk ke portal owner Anda</p>
                 </div>
 
+                <?php
+                // Sticky hp+unit setelah login gagal — biar owner cuma perlu ketik ulang
+                // password (di-set oleh Login::login_act(), dibaca sekali lalu dihapus di sini).
+                $old_hp = $this->session->old_hp ?? '';
+                $old_id_bast = $this->session->old_id_bast ?? '';
+                if ($old_hp !== '' || $old_id_bast !== '') {
+                    $this->session->unset_userdata(array('old_hp', 'old_id_bast'));
+                }
+                ?>
                 <!-- Login Form -->
-                <form method="post" action="<?= site_url('login/login_act') ?>" class="space-y-md">
+                <form method="post" action="<?= site_url('login/login_act') ?>" class="space-y-xs">
                     <!-- WhatsApp Input -->
                     <div class="space-y-xs">
                         <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="whatsapp">Nomor WhatsApp</label>
@@ -210,7 +219,7 @@
                             <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-on-surface-variant">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
                             </div>
-                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789" type="tel" required />
+                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789" type="tel" value="<?= htmlspecialchars($old_hp) ?>" required />
                         </div>
                         <p class="font-label-sm text-label-sm text-on-surface-variant/70">Masukkan nomor WhatsApp yang terdaftar</p>
                     </div>
@@ -222,7 +231,7 @@
                         <!-- Hidden native select = the real form field (name=id_bast, required) -->
                         <div class="hidden">
                             <?= $this->dropdown_model->getDropdownUnitBast('id_bast',
-                                '',
+                                $old_id_bast,
                                 'id="id_bast" required'); ?>
                         </div>
 
@@ -246,6 +255,26 @@
                                 role="listbox"></div>
                         </div>
                     </div>
+
+                    <!-- Password Input -->
+                    <div class="space-y-xs">
+                        <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="password">Password</label>
+                        <div class="relative input-focus-ring rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden">
+                            <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-on-surface-variant">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">lock</span>
+                            </div>
+                            <input class="w-full bg-transparent border-0 pl-xl pr-xl py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="password" name="password" placeholder="Password" type="password" autocomplete="current-password" required />
+                            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-md flex items-center text-on-surface-variant" tabindex="-1">
+                                <span class="material-symbols-outlined" id="toggle-password-icon" style="font-size: 20px;">visibility</span>
+                            </button>
+                        </div>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">
+                            <a href="<?= site_url('login/forgot_password') ?>" class="text-primary hover:underline">Lupa password?</a>
+                        </p>
+                    </div>
+
+                    <!-- Cloudflare Turnstile -->
+                    <div class="cf-turnstile" data-sitekey="<?= $this->config->item('turnstile_site_key') ?>"></div>
 
                     <!-- Login Button -->
                     <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
@@ -299,6 +328,9 @@
 
     var activeIndex = -1;
     var visible = [];
+
+    // Prefill tampilan combobox kalau unit sudah ke-pilih dari server (mis. setelah login gagal).
+    if (select.value) { input.value = selectedLabel(); }
 
     function open()  { panel.classList.remove('hidden'); arrow.style.transform = 'rotate(180deg)'; }
     function close() { panel.classList.add('hidden');    arrow.style.transform = 'rotate(0deg)'; activeIndex = -1; }
@@ -388,10 +420,22 @@
         var spinner = document.createElement('span');
         spinner.className = 'btn-spinner';
         icon.replaceWith(spinner);
-        txt.textContent = 'Mengirim OTP…';
+        txt.textContent = 'Memproses…';
         btn.disabled = true;
         btn.style.opacity = '0.85';
         btn.style.cursor  = 'not-allowed';
     });
+
+    // Toggle show/hide password
+    var pwInput = document.getElementById('password');
+    var pwToggle = document.getElementById('toggle-password');
+    var pwIcon = document.getElementById('toggle-password-icon');
+    if (pwInput && pwToggle) {
+        pwToggle.addEventListener('click', function () {
+            var isHidden = pwInput.type === 'password';
+            pwInput.type = isHidden ? 'text' : 'password';
+            pwIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        });
+    }
 })();
 </script>
