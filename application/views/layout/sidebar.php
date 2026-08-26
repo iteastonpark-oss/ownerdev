@@ -110,7 +110,10 @@
                     <p class="font-label-md text-label-md font-medium text-on-surface truncate"><?php echo $this->session->username; ?></p>
                     <p class="font-label-sm text-label-sm text-on-surface-variant truncate">Unit Owner</p>
                 </div>
-                <a href="<?= site_url('login/logout'); ?>" class="text-on-surface-variant hover:text-error transition-colors">
+                <a href="<?= site_url('login/ganti_password'); ?>" title="Ubah Password" class="text-on-surface-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">key</span>
+                </a>
+                <a href="<?= site_url('login/logout'); ?>" title="Keluar" class="text-on-surface-variant hover:text-error transition-colors">
                     <span class="material-symbols-outlined">logout</span>
                 </a>
             </div>

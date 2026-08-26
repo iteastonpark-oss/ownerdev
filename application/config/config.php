@@ -390,12 +390,15 @@ $config['sess_regenerate_destroy'] = FALSE;
 */
 
 
-// Session 7 hari (permintaan tim IT) — driver database (ci_sessions, sama seperti bmsdev)
-// supaya tak tergantung GC file /tmp yang dipakai bersama situs lain di server.
+// Session 7 hari (permintaan tim IT) — driver database, tabel TERPISAH dari bmsdev
+// (ci_sessions_owner, bukan ci_sessions) karena GC bmsdev pakai sess_expiration 4 jam
+// dan akan ikut menghapus baris session owner kalau satu tabel dipakai bersama.
+// (Staging sebelumnya masih pakai tabel ci_sessions bersama bmsdev -- disamakan ke
+// perbaikan yang sudah dipakai production, lihat commit adb4401.)
 $config['sess_driver'] = 'database';
-$config['sess_cookie_name'] = 'ci_session';
+$config['sess_cookie_name'] = 'ci_session_owner';
 $config['sess_expiration'] = 604800;
-$config['sess_save_path'] = 'ci_sessions';
+$config['sess_save_path'] = 'ci_sessions_owner';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
@@ -544,6 +547,22 @@ if (!defined('BMS_UPLOAD_PATH')) {
         ? $envBmsUploadPath
         : '/www/wwwroot/bms.eprjatinangor.com/upload/');
 }
+
+// Cloudflare Turnstile (proteksi halaman login owner dari bot/brute-force otomatis).
+// PENTING: default di bawah adalah TEST KEY resmi Cloudflare (selalu lolos verifikasi,
+// LIHAT https://developers.cloudflare.com/turnstile/troubleshooting/testing/) — dipasang
+// SEMENTARA supaya widget-nya kelihatan & bisa dites, TAPI TIDAK memberi proteksi nyata
+// sama sekali sampai diganti site key + secret key ASLI (daftar gratis di
+// dash.cloudflare.com > Turnstile, domain: owner.eprjatinangor.com), lihat docs/90.
+$envTurnstileSiteKey = getenv('TURNSTILE_SITE_KEY');
+$config['turnstile_site_key'] = ($envTurnstileSiteKey !== FALSE && $envTurnstileSiteKey !== '')
+    ? $envTurnstileSiteKey
+    : '1x00000000000000000000AA';
+
+$envTurnstileSecretKey = getenv('TURNSTILE_SECRET_KEY');
+$config['turnstile_secret_key'] = ($envTurnstileSecretKey !== FALSE && $envTurnstileSecretKey !== '')
+    ? $envTurnstileSecretKey
+    : '1x0000000000000000000000000000000AA';
 
 
 /**

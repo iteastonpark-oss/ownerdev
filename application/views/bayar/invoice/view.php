@@ -25,7 +25,7 @@ $controller = $this->uri->segment(1) . '/' . $this->uri->segment(2);
 				<tr class="active bg-active">
 					<th>Form</th>
 					<th>Total</th>
-					<th></th>
+					<th>Aksi</th>
 				</tr>
 				</thead>
 				<!--
@@ -59,12 +59,6 @@ $controller = $this->uri->segment(1) . '/' . $this->uri->segment(2);
 			"serverSide": true, //Feature control DataTables' server-side processing mode.
 			"paging": false,
 			"filter": false,
-			"fixedHeader": {
-				header: true,
-				footer: true,
-				headerOffset: 60
-			},
-			"offsetTop": 60,
 			//"scrollY": 500,
 			//"scrollCollapse": true,
 			"order": [], //Initial no order.
