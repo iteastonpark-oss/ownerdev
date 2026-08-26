@@ -28,6 +28,16 @@ $sidebar = "layout/sidebar";
 $navbar = "layout/navbar";
 ?>
 
+<?php
+// Gerbang paksa-ganti-password: selama must_change_password=1, owner hanya boleh
+// membuka halaman ganti password (segment pertama = 'login') — cegah bypass via URL.
+if ($this->session->login && $this->session->tipe == 'owner'
+    && (int) $this->session->must_change_password === 1
+    && $this->uri->segment(1) !== 'login') {
+    redirect(site_url('login/ganti_password?force=1'));
+    exit;
+}
+?>
 <?php if ($this->session->login && $this->session->tipe == 'owner'): ?>
     <!-- Dashboard Layout (Sudah Login) -->
     <?php require_once 'layout/head-only.php'; ?>

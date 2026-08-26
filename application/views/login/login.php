@@ -247,6 +247,21 @@
                         </div>
                     </div>
 
+                    <!-- Password Input -->
+                    <div class="space-y-xs">
+                        <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="password">Password</label>
+                        <div class="relative input-focus-ring rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden">
+                            <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-on-surface-variant">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">lock</span>
+                            </div>
+                            <input class="w-full bg-transparent border-0 pl-xl pr-xl py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="password" name="password" placeholder="Password" type="password" autocomplete="current-password" required />
+                            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-md flex items-center text-on-surface-variant" tabindex="-1">
+                                <span class="material-symbols-outlined" id="toggle-password-icon" style="font-size: 20px;">visibility</span>
+                            </button>
+                        </div>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">Pertama kali login? Gunakan 6 digit terakhir NIK Anda. Lupa password? Hubungi Tenant Relation di 0823-1212-2021.</p>
+                    </div>
+
                     <!-- Login Button -->
                     <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
                         <span id="btn-icon" class="material-symbols-outlined" style="font-size: 20px;">login</span>
@@ -388,10 +403,22 @@
         var spinner = document.createElement('span');
         spinner.className = 'btn-spinner';
         icon.replaceWith(spinner);
-        txt.textContent = 'Mengirim OTP…';
+        txt.textContent = 'Memproses…';
         btn.disabled = true;
         btn.style.opacity = '0.85';
         btn.style.cursor  = 'not-allowed';
     });
+
+    // Toggle show/hide password
+    var pwInput = document.getElementById('password');
+    var pwToggle = document.getElementById('toggle-password');
+    var pwIcon = document.getElementById('toggle-password-icon');
+    if (pwInput && pwToggle) {
+        pwToggle.addEventListener('click', function () {
+            var isHidden = pwInput.type === 'password';
+            pwInput.type = isHidden ? 'text' : 'password';
+            pwIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        });
+    }
 })();
 </script>
