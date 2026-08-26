@@ -202,7 +202,7 @@
                 </div>
 
                 <!-- Login Form -->
-                <form method="post" action="<?= site_url('login/login_act') ?>" class="space-y-sm">
+                <form method="post" action="<?= site_url('login/login_act') ?>" class="space-y-xs">
                     <!-- WhatsApp Input -->
                     <div class="space-y-xs">
                         <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="whatsapp">Nomor WhatsApp</label>
