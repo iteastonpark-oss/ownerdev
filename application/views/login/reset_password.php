@@ -13,12 +13,22 @@
 
             <div class="space-y-xs">
                 <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="new_password">Password Baru</label>
-                <input class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-2.5 font-body-md text-on-surface focus:outline-none" id="new_password" name="new_password" type="password" minlength="8" autocomplete="new-password" required />
+                <div class="relative">
+                    <input class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md pr-xl py-2.5 font-body-md text-on-surface focus:outline-none" id="new_password" name="new_password" type="password" minlength="8" autocomplete="new-password" required />
+                    <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-md flex items-center text-on-surface-variant" data-target="new_password" tabindex="-1">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">visibility</span>
+                    </button>
+                </div>
             </div>
 
             <div class="space-y-xs">
                 <label class="font-label-sm text-label-sm font-medium text-on-surface block" for="confirm_password">Konfirmasi Password Baru</label>
-                <input class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-2.5 font-body-md text-on-surface focus:outline-none" id="confirm_password" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required />
+                <div class="relative">
+                    <input class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md pr-xl py-2.5 font-body-md text-on-surface focus:outline-none" id="confirm_password" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required />
+                    <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-md flex items-center text-on-surface-variant" data-target="confirm_password" tabindex="-1">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">visibility</span>
+                    </button>
+                </div>
             </div>
 
             <button class="w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg mt-sm" type="submit" style="background: linear-gradient(135deg, #715d00 0%, #b89e3d 100%);">
@@ -27,3 +37,17 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    document.querySelectorAll('.toggle-password').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var input = document.getElementById(btn.dataset.target);
+            var icon = btn.querySelector('.material-symbols-outlined');
+            var isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        });
+    });
+})();
+</script>
