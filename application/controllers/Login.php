@@ -84,7 +84,7 @@ class Login extends CI_Controller
 			$attempts = (int) $pemilik->failed_attempts + 1;
 			$update = array('failed_attempts' => $attempts);
 			if ($attempts >= self::MAX_LOGIN_ATTEMPTS) {
-				$update['locked_until'] = date('Y-m-d H:i:s', strtotime('+' . self::LOCKOUT_MINUTES . ' minutes'));
+				$update['locked_until'] = gmdate('Y-m-d H:i:s', strtotime('+' . self::LOCKOUT_MINUTES . ' minutes'));
 			}
 			$this->apl->updateData("pemilik", $update, array('id_pemilik' => $pemilik->id_pemilik));
 			$this->apl->log("LOGIN_FAILED", json_encode(array('id_pemilik' => $pemilik->id_pemilik, 'hp' => $hp, 'attempt' => $attempts)), "");
@@ -190,7 +190,7 @@ class Login extends CI_Controller
 		$this->apl->updateData("pemilik", array(
 			'password' => password_hash($new_password, PASSWORD_BCRYPT),
 			'must_change_password' => 0,
-			'password_updated_at' => date('Y-m-d H:i:s'),
+			'password_updated_at' => gmdate('Y-m-d H:i:s'),
 			'failed_attempts' => 0,
 			'locked_until' => null,
 		), array('id_pemilik' => $id_pemilik));
@@ -262,7 +262,7 @@ class Login extends CI_Controller
 		$token = bin2hex(random_bytes(32));
 		$this->apl->updateData("pemilik", array(
 			'reset_token' => $token,
-			'reset_token_expires_at' => date('Y-m-d H:i:s', strtotime('+' . self::RESET_TOKEN_MINUTES . ' minutes')),
+			'reset_token_expires_at' => gmdate('Y-m-d H:i:s', strtotime('+' . self::RESET_TOKEN_MINUTES . ' minutes')),
 		), array('id_pemilik' => $pemilik->id_pemilik));
 
 		$link = site_url('login/reset_password/' . $token);
@@ -331,7 +331,7 @@ class Login extends CI_Controller
 		$this->apl->updateData("pemilik", array(
 			'password' => password_hash($new_password, PASSWORD_BCRYPT),
 			'must_change_password' => 0,
-			'password_updated_at' => date('Y-m-d H:i:s'),
+			'password_updated_at' => gmdate('Y-m-d H:i:s'),
 			'failed_attempts' => 0,
 			'locked_until' => null,
 			'reset_token' => null,
