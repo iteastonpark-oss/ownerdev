@@ -415,7 +415,10 @@ class Login extends CI_Controller
 		return $masked . '@' . $parts[1];
 	}
 
-	// SMTP sama seperti bmsdev/Send_email.php (akun billing@eprjatinangor.com via Niagahoster).
+	// SMTP via Zoho (akun billing@eprjatinangor.com) -- sama seperti config
+	// email Zoho yang sudah live di bmsdev/application/controllers/pesan/Email.php.
+	// Sebelumnya pakai Niagahoster (srv125.niagahoster.com), tapi port SMTP-nya
+	// diblokir provider hosting; pindah ke Zoho setelah port dibuka 2026-08-26.
 	private function send_reset_email($to, $nama, $link)
 	{
 		try {
@@ -424,12 +427,12 @@ class Login extends CI_Controller
 			$mail = $mailer->load();
 
 			$mail->isSMTP();
-			$mail->Host = 'srv125.niagahoster.com';
+			$mail->Host = 'smtp.zoho.com';
 			$mail->SMTPAuth = true;
 			$mail->Username = $mailer->email();
 			$mail->Password = $mailer->password();
-			$mail->SMTPSecure = 'tls';
-			$mail->Port = 587;
+			$mail->SMTPSecure = 'ssl';
+			$mail->Port = 465;
 			// Batasi timeout koneksi SMTP — kalau server mail lambat/unreachable,
 			// jangan sampai nge-hang request PHP-FPM/worker berlama-lama (ditemukan
 			// saat uji lokal: default PHPMailer bisa nunggu lama tanpa batas jelas).

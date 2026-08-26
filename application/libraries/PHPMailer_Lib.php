@@ -6,8 +6,12 @@ use PHPMailer\PHPMailer\Exception;
 
 class PHPMailer_Lib
 {
+	// Zoho (bukan Niagahoster) -- port SMTP Niagahoster (25/465/587) diblokir
+	// provider hosting, sudah dikonfirmasi tim teknis & dibuka utk Zoho saja
+	// (2026-08-26). Kredensial sama seperti yang sudah dipakai live di
+	// bmsdev/application/controllers/pesan/Email.php sejak April 2026.
 	var $user_email = 'billing@eprjatinangor.com';
-	var $pass = 'eprj@2021';
+	var $pass = 'Mailepr2022@billing';
 
 	public function __construct()
 	{
