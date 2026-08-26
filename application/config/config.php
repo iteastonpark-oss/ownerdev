@@ -546,6 +546,22 @@ if (!defined('BMS_UPLOAD_PATH')) {
         : '/www/wwwroot/bms.eprjatinangor.com/upload/');
 }
 
+// Cloudflare Turnstile (proteksi halaman login owner dari bot/brute-force otomatis).
+// PENTING: default di bawah adalah TEST KEY resmi Cloudflare (selalu lolos verifikasi,
+// LIHAT https://developers.cloudflare.com/turnstile/troubleshooting/testing/) — dipasang
+// SEMENTARA supaya widget-nya kelihatan & bisa dites, TAPI TIDAK memberi proteksi nyata
+// sama sekali sampai diganti site key + secret key ASLI (daftar gratis di
+// dash.cloudflare.com > Turnstile, domain: owner.eprjatinangor.com), lihat docs/90.
+$envTurnstileSiteKey = getenv('TURNSTILE_SITE_KEY');
+$config['turnstile_site_key'] = ($envTurnstileSiteKey !== FALSE && $envTurnstileSiteKey !== '')
+    ? $envTurnstileSiteKey
+    : '1x00000000000000000000AA';
+
+$envTurnstileSecretKey = getenv('TURNSTILE_SECRET_KEY');
+$config['turnstile_secret_key'] = ($envTurnstileSecretKey !== FALSE && $envTurnstileSecretKey !== '')
+    ? $envTurnstileSecretKey
+    : '1x0000000000000000000000000000000AA';
+
 
 /**
 // output path where the compiled files will be stored

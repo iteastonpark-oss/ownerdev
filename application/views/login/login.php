@@ -273,6 +273,9 @@
                         </p>
                     </div>
 
+                    <!-- Cloudflare Turnstile -->
+                    <div class="cf-turnstile" data-sitekey="<?= $this->config->item('turnstile_site_key') ?>"></div>
+
                     <!-- Login Button -->
                     <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
                         <span id="btn-icon" class="material-symbols-outlined" style="font-size: 20px;">login</span>

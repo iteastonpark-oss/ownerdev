@@ -29,6 +29,46 @@ class Login extends CI_Controller
 	const MAX_LOGIN_ATTEMPTS = 5;
 	const LOCKOUT_MINUTES = 15;
 
+	// Verifikasi Cloudflare Turnstile — key diambil dari config/config.php
+	// (turnstile_site_key/turnstile_secret_key, lihat komentar di sana soal TEST KEY).
+	// Fail-open kalau secret belum dikonfigurasi ATAU endpoint Cloudflare unreachable,
+	// supaya login owner tidak ikut mati total gara-gara Cloudflare down/network issue.
+	private function verifyTurnstile()
+	{
+		$secret = $this->config->item('turnstile_secret_key');
+		if (empty($secret)) {
+			return true;
+		}
+
+		$token = $this->input->post('cf-turnstile-response');
+		if (empty($token)) {
+			return false;
+		}
+
+		$ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+		curl_setopt_array($ch, array(
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => http_build_query(array(
+				'secret' => $secret,
+				'response' => $token,
+				'remoteip' => $this->input->ip_address(),
+			)),
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_TIMEOUT => 8,
+		));
+		$response = curl_exec($ch);
+		$curlError = curl_error($ch);
+		curl_close($ch);
+
+		if ($response === false) {
+			log_message('error', 'Turnstile siteverify unreachable: ' . $curlError);
+			return true;
+		}
+
+		$result = json_decode($response, true);
+		return !empty($result['success']);
+	}
+
 	function login_act()
 	{
 		$hp = trim((string) $this->input->post('hp'));
@@ -39,6 +79,12 @@ class Login extends CI_Controller
 		// (dibaca sekali & dihapus oleh views/login/login.php, lihat old_hp/old_id_bast).
 		$this->session->old_hp = $hp;
 		$this->session->old_id_bast = $id_bast;
+
+		if (!$this->verifyTurnstile()) {
+			$this->pesan->pesan_warning("Verifikasi keamanan (Turnstile) gagal. Silakan coba lagi.");
+			redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : site_url(''));
+			return;
+		}
 
 		if ($hp === '' || $id_bast === '' || $password === '') {
 			$this->pesan->pesan_warning("Nomor WhatsApp, Unit, dan Password wajib diisi.");
