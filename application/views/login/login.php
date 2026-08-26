@@ -201,6 +201,15 @@
                     <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Masuk ke portal owner Anda</p>
                 </div>
 
+                <?php
+                // Sticky hp+unit setelah login gagal — biar owner cuma perlu ketik ulang
+                // password (di-set oleh Login::login_act(), dibaca sekali lalu dihapus di sini).
+                $old_hp = $this->session->old_hp ?? '';
+                $old_id_bast = $this->session->old_id_bast ?? '';
+                if ($old_hp !== '' || $old_id_bast !== '') {
+                    $this->session->unset_userdata(array('old_hp', 'old_id_bast'));
+                }
+                ?>
                 <!-- Login Form -->
                 <form method="post" action="<?= site_url('login/login_act') ?>" class="space-y-xs">
                     <!-- WhatsApp Input -->
@@ -210,7 +219,7 @@
                             <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-on-surface-variant">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
                             </div>
-                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789" type="tel" required />
+                            <input class="w-full bg-transparent border-0 pl-xl pr-md py-2.5 font-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-0" id="whatsapp" name="hp" placeholder="Contoh: 08123456789" type="tel" value="<?= htmlspecialchars($old_hp) ?>" required />
                         </div>
                         <p class="font-label-sm text-label-sm text-on-surface-variant/70">Masukkan nomor WhatsApp yang terdaftar</p>
                     </div>
@@ -222,7 +231,7 @@
                         <!-- Hidden native select = the real form field (name=id_bast, required) -->
                         <div class="hidden">
                             <?= $this->dropdown_model->getDropdownUnitBast('id_bast',
-                                '',
+                                $old_id_bast,
                                 'id="id_bast" required'); ?>
                         </div>
 
@@ -316,6 +325,9 @@
 
     var activeIndex = -1;
     var visible = [];
+
+    // Prefill tampilan combobox kalau unit sudah ke-pilih dari server (mis. setelah login gagal).
+    if (select.value) { input.value = selectedLabel(); }
 
     function open()  { panel.classList.remove('hidden'); arrow.style.transform = 'rotate(180deg)'; }
     function close() { panel.classList.add('hidden');    arrow.style.transform = 'rotate(0deg)'; activeIndex = -1; }

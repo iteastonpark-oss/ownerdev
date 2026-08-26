@@ -35,9 +35,14 @@ class Login extends CI_Controller
 		$id_bast = $this->input->post('id_bast');
 		$password = (string) $this->input->post('password');
 
+		// Kalau gagal, isi ulang cuma Password — hp+unit tetap ke-prefill di form
+		// (dibaca sekali & dihapus oleh views/login/login.php, lihat old_hp/old_id_bast).
+		$this->session->old_hp = $hp;
+		$this->session->old_id_bast = $id_bast;
+
 		if ($hp === '' || $id_bast === '' || $password === '') {
 			$this->pesan->pesan_warning("Nomor WhatsApp, Unit, dan Password wajib diisi.");
-			redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : site_url('login'));
+			redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : site_url(''));
 			return;
 		}
 
@@ -93,6 +98,9 @@ class Login extends CI_Controller
 			return;
 		}
 
+		// Sukses login — hp/unit tidak perlu di-prefill lagi.
+		$this->session->unset_userdata(array('old_hp', 'old_id_bast'));
+
 		// Sukses — reset counter, rotate session id (cegah session fixation), set sesi login.
 		$this->apl->updateData("pemilik", array('failed_attempts' => 0, 'locked_until' => null), array('id_pemilik' => $pemilik->id_pemilik));
 		$this->session->sess_regenerate(FALSE);
@@ -128,7 +136,7 @@ class Login extends CI_Controller
 	function ganti_password()
 	{
 		if (!$this->session->login) {
-			redirect(site_url('login'));
+			redirect(site_url(''));
 			return;
 		}
 
@@ -141,7 +149,7 @@ class Login extends CI_Controller
 	function ganti_password_act()
 	{
 		if (!$this->session->login) {
-			redirect(site_url('login'));
+			redirect(site_url(''));
 			return;
 		}
 
@@ -233,14 +241,14 @@ class Login extends CI_Controller
 			// Pesan digeneralisir (tidak bocorkan apakah hp/unit valid) — beda dgn login_act
 			// yg memang perlu spesifik krn user harus tahu kombinasi hp/unit-nya salah.
 			$this->pesan->pesan_success($genericMsg);
-			redirect(site_url('login'));
+			redirect(site_url(''));
 			return;
 		}
 
 		$pemilik = $this->apl->getSelectedData("pemilik", array('id_pemilik' => $bast->id_pemilik, 'hapus' => 0))->row();
 		if (!$pemilik) {
 			$this->pesan->pesan_success($genericMsg);
-			redirect(site_url('login'));
+			redirect(site_url(''));
 			return;
 		}
 
@@ -267,7 +275,7 @@ class Login extends CI_Controller
 		} else {
 			$this->pesan->pesan_warning("Gagal mengirim email reset password. Silakan coba lagi beberapa saat lagi atau hubungi Admin BMS.");
 		}
-		redirect(site_url('login'));
+		redirect(site_url(''));
 	}
 
 	function reset_password($token = '')
@@ -332,7 +340,7 @@ class Login extends CI_Controller
 
 		$this->apl->log("RESET_PASSWORD_OWNER_VIA_EMAIL", json_encode(array('id_pemilik' => $pemilik->id_pemilik)), "");
 		$this->pesan->pesan_success("Password berhasil direset. Silakan login dengan password baru Anda.");
-		redirect(site_url('login'));
+		redirect(site_url(''));
 	}
 
 	// pemilik.email diutamakan, fallback ke bast.email_surat (alamat surat unit) —
