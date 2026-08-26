@@ -174,9 +174,13 @@ if ($this->session->login && $this->session->tipe == 'owner'
     <body class="min-h-screen bg-background">
         <?php
         require_once 'layout/notifikasi_jquery.php';
-        // $page dipakai utk halaman auth lain yg belum login (lupa/reset password) —
-        // default tetap login/login supaya seluruh controller lama yg tidak set $page tidak berubah.
-        require_once (isset($page) ? $page : 'login/login') . '.php';
+        // NOTE: sengaja TIDAK pakai $page di sini — $page selalu ke-set oleh
+        // controller manapun (mis. Home::index set 'dashboard/dashboard' walau
+        // belum login), jadi kalau dipakai di branch ini bisa salah nampilin
+        // konten dashboard tanpa sidebar saat session sebenarnya sudah logout/expired
+        // (bug nyata ditemukan 2026-08-26). $auth_page KHUSUS di-set oleh
+        // Login::forgot_password()/reset_password() untuk halaman auth selain login.
+        require_once (isset($auth_page) ? $auth_page : 'login/login') . '.php';
         ?>
     </body>
 <?php endif; ?>

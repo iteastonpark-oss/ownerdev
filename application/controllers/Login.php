@@ -205,7 +205,7 @@ class Login extends CI_Controller
 	function forgot_password()
 	{
 		$data['judul'] = 'Lupa Password';
-		$data['page'] = 'login/forgot_password';
+		$data['auth_page'] = 'login/forgot_password';
 		$this->load->view('home', $data);
 	}
 
@@ -286,7 +286,7 @@ class Login extends CI_Controller
 		}
 
 		$data['judul'] = 'Reset Password';
-		$data['page'] = 'login/reset_password';
+		$data['auth_page'] = 'login/reset_password';
 		$data['token'] = $token;
 		$this->load->view('home', $data);
 	}
