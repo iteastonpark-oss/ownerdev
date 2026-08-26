@@ -92,7 +92,8 @@ class Login extends CI_Controller
 			if (isset($update['locked_until'])) {
 				$this->pesan->pesan_warning("Password salah. Akun dikunci sementara " . self::LOCKOUT_MINUTES . " menit karena terlalu banyak percobaan gagal.");
 			} else {
-				$this->pesan->pesan_warning("Nomor WhatsApp, Unit, atau Password salah.");
+				$sisa = self::MAX_LOGIN_ATTEMPTS - $attempts;
+				$this->pesan->pesan_warning("Nomor WhatsApp, Unit, atau Password salah. Percobaan ke-" . $attempts . " dari " . self::MAX_LOGIN_ATTEMPTS . " (" . $sisa . " kali lagi sebelum akun dikunci sementara).");
 			}
 			redirect($_SERVER['HTTP_REFERER']);
 			return;
