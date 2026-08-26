@@ -174,7 +174,9 @@ if ($this->session->login && $this->session->tipe == 'owner'
     <body class="min-h-screen bg-background">
         <?php
         require_once 'layout/notifikasi_jquery.php';
-        require_once 'login/login.php';
+        // $page dipakai utk halaman auth lain yg belum login (lupa/reset password) —
+        // default tetap login/login supaya seluruh controller lama yg tidak set $page tidak berubah.
+        require_once (isset($page) ? $page : 'login/login') . '.php';
         ?>
     </body>
 <?php endif; ?>

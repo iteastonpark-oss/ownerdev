@@ -14,6 +14,10 @@ class Login extends CI_Controller
 		$this->load->model('Login_Model', 'login_model');
 		$this->login_model = new Login_Model();
 		$this->apl = new Apl();
+
+		// Dibutuhkan oleh views/login/forgot_password.php (dropdown pilih unit).
+		$this->load->model('Dropdown_Model', 'dropdown_model');
+		$this->dropdown_model = new Dropdown_Model();
 	}
 
 	public function login() {}
@@ -187,6 +191,212 @@ class Login extends CI_Controller
 		$this->apl->log("GANTI_PASSWORD_OWNER", json_encode(array('id_pemilik' => $id_pemilik)), "");
 		$this->pesan->pesan_success("Password berhasil diubah.");
 		redirect(site_url(''));
+	}
+
+	// ==========================================================================
+	// Lupa Password — via EMAIL (pemilik.email atau bast.email_surat, mana yang
+	// terisi). Owner diidentifikasi pakai hp+unit (sama seperti login), supaya
+	// tidak perlu owner "ingat" email apa yang didaftarkan. Kalau kedua kolom
+	// email kosong, arahkan hubungi admin/TR (sesuai keputusan user 2026-08-26,
+	// lihat docs/90 — cakupan email cuma ~51% unit vs WA ~98%).
+	// ==========================================================================
+	const RESET_TOKEN_MINUTES = 30;
+
+	function forgot_password()
+	{
+		$data['judul'] = 'Lupa Password';
+		$data['page'] = 'login/forgot_password';
+		$this->load->view('home', $data);
+	}
+
+	function forgot_password_act()
+	{
+		$hp = trim((string) $this->input->post('hp'));
+		$id_bast = $this->input->post('id_bast');
+
+		if ($hp === '' || $id_bast === '') {
+			$this->pesan->pesan_warning("Nomor WhatsApp dan Unit wajib diisi.");
+			redirect(site_url('login/forgot_password'));
+			return;
+		}
+
+		if ($hp == '085780465303' || $hp == '085195140308' || $hp == '082129248953' || $hp == '081224341030' || $hp == '085862880940' || $hp == '082215866660' || $hp == '0881022246542' || $hp == '089690527866' || $hp == '089687038641') {
+			$where = "hapus=0 AND id_bast='" . $id_bast . "'";
+		} else {
+			$where = "hapus=0 and wa_surat LIKE '%" . $hp . "%' AND id_bast='" . $id_bast . "'";
+		}
+
+		$bast = $this->apl->getSelectedData("bast", $where)->row();
+		$genericMsg = "Kalau data yang Anda masukkan sesuai, link reset password sudah kami kirim ke email yang terdaftar.";
+
+		if (!$bast) {
+			// Pesan digeneralisir (tidak bocorkan apakah hp/unit valid) — beda dgn login_act
+			// yg memang perlu spesifik krn user harus tahu kombinasi hp/unit-nya salah.
+			$this->pesan->pesan_success($genericMsg);
+			redirect(site_url('login'));
+			return;
+		}
+
+		$pemilik = $this->apl->getSelectedData("pemilik", array('id_pemilik' => $bast->id_pemilik, 'hapus' => 0))->row();
+		if (!$pemilik) {
+			$this->pesan->pesan_success($genericMsg);
+			redirect(site_url('login'));
+			return;
+		}
+
+		$email = $this->resolve_owner_email($pemilik, $bast);
+		if (!$email) {
+			$this->pesan->pesan_warning("Email tidak ditemukan untuk akun ini. Silakan hubungi Admin BMS / Tenant Relation di 0823-1212-2021 atau info@eprjatinangor.com untuk reset password manual.");
+			redirect(site_url('login/forgot_password'));
+			return;
+		}
+
+		$token = bin2hex(random_bytes(32));
+		$this->apl->updateData("pemilik", array(
+			'reset_token' => $token,
+			'reset_token_expires_at' => date('Y-m-d H:i:s', strtotime('+' . self::RESET_TOKEN_MINUTES . ' minutes')),
+		), array('id_pemilik' => $pemilik->id_pemilik));
+
+		$link = site_url('login/reset_password/' . $token);
+		$sent = $this->send_reset_email($email, $pemilik->nama, $link);
+
+		$this->apl->log("FORGOT_PASSWORD_OWNER", json_encode(array('id_pemilik' => $pemilik->id_pemilik, 'email_sent' => $sent)), "");
+
+		if ($sent) {
+			$this->pesan->pesan_success("Link reset password sudah dikirim ke email " . $this->mask_email($email) . ". Cek juga folder Spam/Junk.");
+		} else {
+			$this->pesan->pesan_warning("Gagal mengirim email reset password. Silakan coba lagi beberapa saat lagi atau hubungi Admin BMS.");
+		}
+		redirect(site_url('login'));
+	}
+
+	function reset_password($token = '')
+	{
+		$pemilik = $token ? $this->apl->getSelectedData("pemilik", array(
+			'reset_token' => $token,
+			'hapus' => 0,
+		))->row() : null;
+
+		$valid = $pemilik && !empty($pemilik->reset_token_expires_at) && strtotime($pemilik->reset_token_expires_at) > time();
+
+		if (!$valid) {
+			$this->pesan->pesan_warning("Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.");
+			redirect(site_url('login/forgot_password'));
+			return;
+		}
+
+		$data['judul'] = 'Reset Password';
+		$data['page'] = 'login/reset_password';
+		$data['token'] = $token;
+		$this->load->view('home', $data);
+	}
+
+	function reset_password_act()
+	{
+		$token = (string) $this->input->post('token');
+		$new_password = (string) $this->input->post('new_password');
+		$confirm_password = (string) $this->input->post('confirm_password');
+
+		$pemilik = $token ? $this->apl->getSelectedData("pemilik", array(
+			'reset_token' => $token,
+			'hapus' => 0,
+		))->row() : null;
+		$valid = $pemilik && !empty($pemilik->reset_token_expires_at) && strtotime($pemilik->reset_token_expires_at) > time();
+
+		if (!$valid) {
+			$this->pesan->pesan_warning("Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.");
+			redirect(site_url('login/forgot_password'));
+			return;
+		}
+
+		if (strlen($new_password) < 8) {
+			$this->pesan->pesan_warning("Password baru minimal 8 karakter.");
+			redirect(site_url('login/reset_password/' . $token));
+			return;
+		}
+		if ($new_password !== $confirm_password) {
+			$this->pesan->pesan_warning("Konfirmasi password baru tidak sama.");
+			redirect(site_url('login/reset_password/' . $token));
+			return;
+		}
+
+		$this->apl->updateData("pemilik", array(
+			'password' => password_hash($new_password, PASSWORD_BCRYPT),
+			'must_change_password' => 0,
+			'password_updated_at' => date('Y-m-d H:i:s'),
+			'failed_attempts' => 0,
+			'locked_until' => null,
+			'reset_token' => null,
+			'reset_token_expires_at' => null,
+		), array('id_pemilik' => $pemilik->id_pemilik));
+
+		$this->apl->log("RESET_PASSWORD_OWNER_VIA_EMAIL", json_encode(array('id_pemilik' => $pemilik->id_pemilik)), "");
+		$this->pesan->pesan_success("Password berhasil direset. Silakan login dengan password baru Anda.");
+		redirect(site_url('login'));
+	}
+
+	// pemilik.email diutamakan, fallback ke bast.email_surat (alamat surat unit) —
+	// gabungan keduanya menaikkan cakupan owner yang bisa pakai reset via email
+	// dari ~34% (pemilik.email saja) ke ~51% unit (lihat docs/90 #40).
+	private function resolve_owner_email($pemilik, $bast)
+	{
+		if (!empty($pemilik->email) && filter_var($pemilik->email, FILTER_VALIDATE_EMAIL)) {
+			return $pemilik->email;
+		}
+		if (!empty($bast->email_surat) && filter_var($bast->email_surat, FILTER_VALIDATE_EMAIL)) {
+			return $bast->email_surat;
+		}
+		return null;
+	}
+
+	private function mask_email($email)
+	{
+		$parts = explode('@', $email);
+		if (count($parts) !== 2) {
+			return $email;
+		}
+		$name = $parts[0];
+		$masked = strlen($name) <= 2 ? $name[0] . '*' : substr($name, 0, 2) . str_repeat('*', max(1, strlen($name) - 2));
+		return $masked . '@' . $parts[1];
+	}
+
+	// SMTP sama seperti bmsdev/Send_email.php (akun billing@eprjatinangor.com via Niagahoster).
+	private function send_reset_email($to, $nama, $link)
+	{
+		try {
+			$this->load->library('PHPMailer_Lib');
+			$mailer = new PHPMailer_Lib();
+			$mail = $mailer->load();
+
+			$mail->isSMTP();
+			$mail->Host = 'srv125.niagahoster.com';
+			$mail->SMTPAuth = true;
+			$mail->Username = $mailer->email();
+			$mail->Password = $mailer->password();
+			$mail->SMTPSecure = 'tls';
+			$mail->Port = 587;
+			// Batasi timeout koneksi SMTP — kalau server mail lambat/unreachable,
+			// jangan sampai nge-hang request PHP-FPM/worker berlama-lama (ditemukan
+			// saat uji lokal: default PHPMailer bisa nunggu lama tanpa batas jelas).
+			$mail->Timeout = 10;
+			$mail->SMTPKeepAlive = false;
+
+			$mail->setFrom($mailer->email(), 'Easton Park Residence');
+			$mail->addAddress($to);
+			$mail->isHTML(true);
+			$mail->Subject = 'Reset Password Portal Owner - Easton Park Residence';
+			$mail->Body = '<p>Yth. ' . htmlspecialchars($nama) . ',</p>'
+				. '<p>Kami menerima permintaan reset password untuk akun Portal Owner Easton Park Residence Anda.</p>'
+				. '<p><a href="' . $link . '" style="background:#715d00;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Reset Password</a></p>'
+				. '<p>Atau salin link berikut ke browser Anda:<br>' . $link . '</p>'
+				. '<p>Link ini berlaku selama ' . self::RESET_TOKEN_MINUTES . ' menit. Kalau Anda tidak meminta reset password, abaikan email ini.</p>'
+				. '<p>Building Management<br>Easton Park Residence Jatinangor</p>';
+
+			return (bool) $mail->send();
+		} catch (Exception $e) {
+			log_message('error', 'send_reset_email failed: ' . $e->getMessage());
+			return false;
+		}
 	}
 
 	function login_otp()
