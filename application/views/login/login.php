@@ -268,7 +268,7 @@
                                 <span class="material-symbols-outlined" id="toggle-password-icon" style="font-size: 20px;">visibility</span>
                             </button>
                         </div>
-                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">
+                        <p class="font-label-sm text-label-sm text-on-surface-variant/70">Pertama kali login? Gunakan 6 digit terakhir NIK Anda.
                             <a href="<?= site_url('login/forgot_password') ?>" class="text-primary hover:underline">Lupa password?</a>
                         </p>
                     </div>
