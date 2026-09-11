@@ -69,6 +69,18 @@ class Login extends CI_Controller
 		return !empty($result['success']);
 	}
 
+	// Tombol click-to-chat WA ke Tenant Relation, pesan sudah prefilled (no HP + unit
+	// + konteks kendala) supaya TR bisa langsung bantu tanpa owner harus jelasin ulang
+	// data diri — penting untuk owner lansia yang sering kesulitan self-service.
+	// Nomor TR sama seperti yang sudah dipakai di pesan error lain di file ini.
+	private function waHelpButton($hp, $id_bast, $konteks)
+	{
+		$pesanWa = $konteks . " Nomor WA saya: " . $hp . ", Unit: " . $id_bast . ".";
+		$link = 'https://wa.me/6282312122021?text=' . rawurlencode($pesanWa);
+		return '<br><a href="' . $link . '" target="_blank" rel="noopener" class="btn btn-success btn-sm" style="margin-top:8px;">'
+			. '<span class="fa fa-whatsapp"></span> Butuh Bantuan? Chat Tenant Relation</a>';
+	}
+
 	function login_act()
 	{
 		$hp = trim((string) $this->input->post('hp'));
@@ -114,14 +126,26 @@ class Login extends CI_Controller
 			return;
 		}
 
+		// Masa kunci sebelumnya sudah lewat -> reset counter dulu supaya owner dapat
+		// kuota percobaan baru (5x), bukan nyambung dari counter lama. Tanpa ini,
+		// failed_attempts naik terus lintas hari (pernah ketemu s/d 12) dan begitu
+		// sudah >=5, SEKALI gagal langsung dikunci ulang 15 menit terus-menerus —
+		// bukan celah keamanan, tapi jadi jebakan UX buat owner yg lupa password.
+		// Temuan 2026-09-12, lihat docs/90.
+		if (!empty($pemilik->locked_until) && strtotime($pemilik->locked_until) <= time()) {
+			$this->apl->updateData("pemilik", array('failed_attempts' => 0, 'locked_until' => null), array('id_pemilik' => $pemilik->id_pemilik));
+			$pemilik->failed_attempts = 0;
+			$pemilik->locked_until = null;
+		}
+
 		if (!empty($pemilik->locked_until) && strtotime($pemilik->locked_until) > time()) {
-			$this->pesan->pesan_warning("Akun sementara terkunci karena terlalu banyak percobaan login gagal. Coba lagi setelah " . date('H:i', strtotime($pemilik->locked_until)) . " atau hubungi Tenant Relation 0823-1212-2021.");
+			$this->pesan->pesan_warning("Akun sementara terkunci karena terlalu banyak percobaan login gagal. Coba lagi setelah " . date('H:i', strtotime($pemilik->locked_until)) . " atau hubungi Tenant Relation 0823-1212-2021." . $this->waHelpButton($hp, $id_bast, 'Akun saya terkunci setelah beberapa kali salah password.'));
 			redirect($_SERVER['HTTP_REFERER']);
 			return;
 		}
 
 		if (empty($pemilik->password)) {
-			$this->pesan->pesan_warning("Password belum diaktifkan untuk akun Anda. Mohon hubungi Tenant Relation di 0823-1212-2021 untuk aktivasi password.");
+			$this->pesan->pesan_warning("Password belum diaktifkan untuk akun Anda. Mohon hubungi Tenant Relation di 0823-1212-2021 untuk aktivasi password." . $this->waHelpButton($hp, $id_bast, 'Password akun saya belum aktif, mohon dibantu.'));
 			redirect($_SERVER['HTTP_REFERER']);
 			return;
 		}
@@ -135,11 +159,18 @@ class Login extends CI_Controller
 			$this->apl->updateData("pemilik", $update, array('id_pemilik' => $pemilik->id_pemilik));
 			$this->apl->log("LOGIN_FAILED", json_encode(array('id_pemilik' => $pemilik->id_pemilik, 'hp' => $hp, 'attempt' => $attempts)), "");
 
+			// Tombol bantuan WA (prefilled) baru dimunculkan mulai percobaan ke-2 —
+			// supaya tidak mengganggu typo biasa di percobaan pertama, tapi owner
+			// (banyak yang sudah berumur) tidak harus sampai ke-5/terkunci dulu baru
+			// dibantu. Pesan WA sudah membawa no HP + unit supaya TR bisa langsung
+			// bantu tanpa owner perlu jelasin ulang. Keputusan user 2026-09-12.
+			$helpBtn = $attempts >= 2 ? $this->waHelpButton($hp, $id_bast, 'Saya kesulitan login ke Portal Owner, sudah beberapa kali salah.') : '';
+
 			if (isset($update['locked_until'])) {
-				$this->pesan->pesan_warning("Password salah. Akun dikunci sementara " . self::LOCKOUT_MINUTES . " menit karena terlalu banyak percobaan gagal.");
+				$this->pesan->pesan_warning("Password salah. Akun dikunci sementara " . self::LOCKOUT_MINUTES . " menit karena terlalu banyak percobaan gagal." . $helpBtn);
 			} else {
 				$sisa = self::MAX_LOGIN_ATTEMPTS - $attempts;
-				$this->pesan->pesan_warning("Nomor WhatsApp, Unit, atau Password salah. Percobaan ke-" . $attempts . " dari " . self::MAX_LOGIN_ATTEMPTS . " (" . $sisa . " kali lagi sebelum akun dikunci sementara).");
+				$this->pesan->pesan_warning("Nomor WhatsApp, Unit, atau Password salah. Percobaan ke-" . $attempts . " dari " . self::MAX_LOGIN_ATTEMPTS . " (" . $sisa . " kali lagi sebelum akun dikunci sementara)." . $helpBtn);
 			}
 			redirect($_SERVER['HTTP_REFERER']);
 			return;
