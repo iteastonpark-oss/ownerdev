@@ -273,8 +273,10 @@
                         </p>
                     </div>
 
-                    <!-- Cloudflare Turnstile -->
-                    <div class="cf-turnstile" data-sitekey="<?= $this->config->item('turnstile_site_key') ?>"></div>
+                    <!-- Cloudflare Turnstile — data-size="flexible" biar lebar widget ngikut
+                         lebar container (sama dgn input & tombol), bukan lebar tetap ~300px
+                         default Cloudflare. -->
+                    <div class="cf-turnstile w-full" data-sitekey="<?= $this->config->item('turnstile_site_key') ?>" data-size="flexible"></div>
 
                     <!-- Login Button -->
                     <button id="btn-login" class="btn-primary w-full text-on-primary font-label-md text-label-md font-bold py-3 px-md rounded-lg shadow-lg active:scale-[0.98] flex items-center justify-center gap-base mt-sm" type="submit">
