@@ -48,7 +48,7 @@
                 Kirim Link Reset Password
             </button>
 
-            <a href="<?= site_url('login') ?>" class="block text-center font-label-sm text-label-sm text-on-surface-variant hover:text-primary mt-sm">Kembali ke Login</a>
+            <a href="<?= site_url('') ?>" class="block text-center font-label-sm text-label-sm text-on-surface-variant hover:text-primary mt-sm">Kembali ke Login</a>
         </form>
     </div>
 </div>
