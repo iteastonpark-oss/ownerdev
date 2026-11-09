@@ -52,27 +52,64 @@ class Web_Model extends CI_Model
 
 	}
 
-	public function getKategori()
+	/**
+	 * Daftar kategori P3SRS tipe=1 untuk menu owner, siap tampil.
+	 * total & terakhir hanya menghitung artikel terbit (hapus=0, status=1).
+	 * Pemetaan label/deskripsi/ikon/urutan: config/p3srs_menu.php.
+	 *
+	 * @return array ['utama' => [obj...], 'dokumen' => [obj...]]
+	 *   obj: id_kategori, nama (label tampil), nama_cms, deskripsi, ikon, jenis, total, terakhir (Y-m-d|null)
+	 */
+	public function getMenuP3srs()
 	{
-		/*
-		$this->db2->select('*')
-			->where(array(
-				'tipe'=>1,
-				'hapus'=>0,
-			));
-		*/
-		$this->db2->select(' kategori.`id_kategori`,kategori.nama, IFNULL(`post`.`total`,0) as total')
-			//->from('kategori')
-			->join('(SELECT COUNT(`id_post`) AS total, `id_kategori`
-    FROM
-      `post`
-    WHERE
-      `hapus` = 0 GROUP BY id_kategori) post', '`post`.`id_kategori` = `kategori`.`id_kategori`', 'left');
+		$this->config->load('p3srs_menu', TRUE);
+		$cfg = $this->config->item('p3srs_menu', 'p3srs_menu');
 
-		$this->db2->where(array('tipe' => '1', 'hapus' => 0));
+		$rows = $this->db2->select('kategori.id_kategori, kategori.nama, IFNULL(p.total,0) AS total, p.terakhir', FALSE)
+			->from('kategori')
+			->join('(SELECT id_kategori, COUNT(id_post) AS total, DATE(MAX(tanggal)) AS terakhir
+				FROM post WHERE hapus = 0 AND status = 1 GROUP BY id_kategori) p',
+				'p.id_kategori = kategori.id_kategori', 'left', FALSE)
+			->where(array('kategori.tipe' => 1, 'kategori.hapus' => 0))
+			->order_by('kategori.id_kategori', 'ASC')
+			->get()->result();
 
-		return $this->db2->from('kategori')->get();
+		$byId = array();
+		foreach ($rows as $r) {
+			$byId[(int) $r->id_kategori] = $r;
+		}
 
+		$item = function ($id, $r, $def) use ($cfg) {
+			$o = new stdClass();
+			$o->id_kategori = $id;
+			$o->nama_cms = $r->nama;
+			$o->nama = $def ? $def['label'] : $r->nama;
+			$o->deskripsi = $def ? $def['deskripsi'] : '';
+			$o->ikon = $def ? $def['ikon'] : $cfg['ikon_default'];
+			$o->jenis = ($id === 9) ? 'laporan' : 'artikel';
+			$o->total = (int) $r->total;
+			$o->terakhir = !empty($r->terakhir) ? $r->terakhir : NULL;
+			return $o;
+		};
+
+		$out = array('utama' => array(), 'dokumen' => array());
+		foreach ($cfg['utama'] as $id => $def) {
+			if (isset($byId[$id])) {
+				$out['utama'][] = $item($id, $byId[$id], $def);
+				unset($byId[$id]);
+			}
+		}
+		foreach ($cfg['dokumen'] as $id => $def) {
+			if (isset($byId[$id])) {
+				$out['dokumen'][] = $item($id, $byId[$id], $def);
+				unset($byId[$id]);
+			}
+		}
+		// Kategori baru di CMS yang belum dipetakan: tetap tampil, paling akhir di 'dokumen'
+		foreach ($byId as $id => $r) {
+			$out['dokumen'][] = $item($id, $r, NULL);
+		}
+		return $out;
 	}
 
 	public function getPostDetail($id = "", $slug = "")

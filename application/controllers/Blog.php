@@ -43,7 +43,9 @@ class Blog extends CI_Controller
 	public function menu()
 	{
 		$data['page'] = 'page/blog_menu'; //Halaman di tampilkan
-		$data['kategori'] = $this->web->getKategori()->result();
+		$data['menu'] = $this->web->getMenuP3srs();
+		$this->config->load('p3srs_menu', TRUE);
+		$data['menu_cfg'] = $this->config->item('p3srs_menu', 'p3srs_menu');
 		$this->load->view('home', $data);
 	}
 
